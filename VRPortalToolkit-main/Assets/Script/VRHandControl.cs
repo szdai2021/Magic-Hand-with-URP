@@ -23,6 +23,9 @@ public class VRHandControl : MonoBehaviour
     public directionWheelControl DWC1;
     public directionWheelControl DWC2;
 
+    public GameObject DWC1PlaceHolder;
+    public GameObject DWC2PlaceHolder;
+
     public List<GameObject> DW_List;
 
     public float DW_Threshold = 0;
@@ -37,11 +40,25 @@ public class VRHandControl : MonoBehaviour
     public GameObject portal1;
     public GameObject portal2;
 
+    public GameObject portal1PlaceHolder;
+    public GameObject portal2PlaceHolder;
+
     public HandControl methodSwitch = new HandControl();
+
+    public PlaneUsageExample PUE;
+    public GameObject VRHandHull;
+    public Material FullyTransparent;
+    public Material VRHandMaterial;
+    public Collider throughPortalCheckBox;
 
     //public int methodSwitch = 2;
 
     private Vector3 prevHandPos = new Vector3(0, 0, 0);
+    private GameObject upperHandHull;
+    private GameObject lowerHandHull;
+
+    private GameObject upperHandHullClone;
+    public GameObject HandHullClone;
 
     // Update is called once per frame
     void Update()
@@ -69,11 +86,14 @@ public class VRHandControl : MonoBehaviour
 
         if (((int)methodSwitch) != 2)
         {
-            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getTargetPosRot(DWC1.transform, DWC2.transform, this.transform);
+            //(VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getTargetPosRot(DWC1.transform, DWC2.transform, this.transform);
+            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
         }
         else
         {
-            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getTargetPosRot(portal1.transform, portal2.transform, this.transform);
+            portalHandPosControl();
+            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, this.transform);
+            (HandHullClone.transform.position, HandHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHandHull.transform);
         }
 
 
@@ -213,6 +233,53 @@ public class VRHandControl : MonoBehaviour
             {
                 VRHandTwinRotOffset *= Quaternion.AngleAxis(-0.1f, DW_List[0].transform.up);
             }
+        }
+    }
+
+    private void portalHandPosControl()
+    {
+        if (upperHandHull != null | lowerHandHull != null | upperHandHullClone != null)
+        {
+            Object.Destroy(upperHandHull);
+            Object.Destroy(lowerHandHull);
+            Object.Destroy(upperHandHullClone);
+        }
+
+        GameObject[] handHulls = PUE.sliceObject();
+
+        if (handHulls == null) // no intersaction between the hand and the cutting plane
+        {
+            if (throughPortalCheckBox.bounds.Contains(this.transform.position)) // hand passed through portal completely
+            {
+                this.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
+            }
+            else
+            {
+                this.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
+            }
+
+        }
+        else // Upper handhull and lower handhull generated
+        {
+            VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
+            this.GetComponent<VRHandDisplay>().hideVRHand = true;
+
+            upperHandHull = handHulls[0];
+            lowerHandHull = handHulls[1];
+
+            upperHandHull.transform.SetParent(VRHandHull.transform);
+            lowerHandHull.transform.SetParent(VRHandHull.transform);
+
+            upperHandHullClone = Instantiate(upperHandHull);
+            upperHandHullClone.transform.SetParent(HandHullClone.transform);
+            upperHandHullClone.transform.localPosition = upperHandHull.transform.localPosition;
+            upperHandHullClone.transform.localRotation = upperHandHull.transform.localRotation;
+
+            //upperHandHull.SetActive(false);
+            lowerHandHull.GetComponent<Renderer>().material = VRHandMaterial;
+            upperHandHullClone.GetComponent<Renderer>().material = VRHandMaterial;
         }
     }
 }

@@ -5,12 +5,9 @@ using UnityEngine;
 public class GameControl : MonoBehaviour
 {
     public ViconMixedRealityCalibration VMRC;
+    public UnityClient UC;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public float gripperDiameter = 40f;
 
     // Update is called once per frame
     void Update()
@@ -18,6 +15,11 @@ public class GameControl : MonoBehaviour
         if (Input.GetKeyDown("r"))
         {
             VMRC.ApplyOffset();
+        }
+
+        if (Input.GetKeyDown("u"))
+        {
+            UC.changeGripperDiameter(gripperDiameter);
         }
     }
 }

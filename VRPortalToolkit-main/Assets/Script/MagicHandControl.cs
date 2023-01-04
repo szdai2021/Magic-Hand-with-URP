@@ -10,6 +10,9 @@ public class MagicHandControl : MonoBehaviour
     public GameObject VRHand;
     public GameObject VRHandTwin;
 
+    public GameObject VRHandPlaceHolder;
+    public GameObject VRHandTwinPlaceHolder;
+
     public UnityClient unityClient;
 
     public BoxCollider robotRange;
@@ -20,8 +23,13 @@ public class MagicHandControl : MonoBehaviour
     public GameObject portal1;
     public GameObject portal2;
 
+    public GameObject portal1PlaceHolder;
+    public GameObject portal2PlaceHolder;
+
     public Options controlMethod = new Options();
     public List<GameObject> portalRelevant = new List<GameObject>();
+
+    public VRHandArmRender ArmRender;
 
     private bool prev_gestureDetection = false;
     private bool current_gestureDetection = false;
@@ -36,30 +44,49 @@ public class MagicHandControl : MonoBehaviour
         switch (((int)controlMethod))
         {
             case 0: // magic hand control
+                ArmRender.enable = false;
+
                 setObjectActive(portalRelevant, false);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
 
                 if (current_gestureDetection == false & prev_gestureDetection == true)
                 {
-                    (sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
-                    //sphereTwin.transform.position = sphere.transform.position - VRHandTwin.transform.position + VRHand.transform.position;
+                    //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
+                    (sphereTwin.transform.position, sphereTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphere.transform);
                 }
                 break;
-            case 1: // portal control
+            case 1: // extended hand control
+                ArmRender.enable = true;
+
+                setObjectActive(portalRelevant, false);
+                VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
+
+                if (current_gestureDetection == false & prev_gestureDetection == true)
+                {
+                    //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
+                    (sphereTwin.transform.position, sphereTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphere.transform);
+                }
+                break;
+            case 2: // portal control
+                ArmRender.enable = false;
+
                 setObjectActive(portalRelevant, true);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
 
-                (sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(portal2.transform, portal1.transform, sphere.transform);
+                //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(portal2.transform, portal1.transform, sphere.transform);
+                (sphereTwin.transform.position, sphereTwin.transform.rotation) = getNewPosRotAfterRotation(portal2PlaceHolder.transform, portal1PlaceHolder.transform, sphere.transform);
 
                 break;
             default: // magic hand control
+                ArmRender.enable = false;
+
                 setObjectActive(portalRelevant, false);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
 
                 if (current_gestureDetection == false & prev_gestureDetection == true)
                 {
-                    (sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
-                    //sphereTwin.transform.position = sphere.transform.position - VRHandTwin.transform.position + VRHand.transform.position;
+                    //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
+                    (sphereTwin.transform.position, sphereTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphere.transform);
                 }
                 break;
         }
@@ -93,9 +120,22 @@ public class MagicHandControl : MonoBehaviour
 
         targetPos = T_to.TransformPoint(T_from.InverseTransformPoint(source.position));
 
-        targetRot = source.rotation * transformation.rotation;
+        targetRot = source.rotation * transformation.rotation; // wrong orientation
 
         return (targetPos, targetRot);
+    }
+
+    public static (Vector3 targetPos, Quaternion targetRot) getNewPosRotAfterRotation(Transform T_from_placeholder, Transform T_to_placeholder, Transform source)
+    {
+        T_from_placeholder.transform.position = source.transform.position;
+        T_from_placeholder.transform.rotation = source.transform.rotation;
+        T_from_placeholder.transform.localScale = source.transform.localScale;
+
+        T_to_placeholder.transform.localPosition = T_from_placeholder.transform.localPosition;
+        T_to_placeholder.transform.localRotation = T_from_placeholder.transform.localRotation;
+        T_to_placeholder.transform.localScale = T_from_placeholder.transform.localScale;
+
+        return (T_to_placeholder.transform.position, T_to_placeholder.transform.rotation);
     }
 
     private void setObjectActive(List<GameObject> listObj, bool f)
@@ -111,5 +151,6 @@ public class MagicHandControl : MonoBehaviour
 public enum Options // your custom enumeration
 {
     MagicHand,
+    ExtendedHand,
     Portal
 };
