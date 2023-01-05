@@ -2,20 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace VRPortalToolkit
+public class HideGameObjectRender : MonoBehaviour
 {
-    public class HideGameObjectRender : MonoBehaviour
-    {
-        public bool hide = false;
+    public bool hide = false;
 
-        // Update is called once per frame
-        void Update()
+    // Update is called once per frame
+    void Update()
+    {
+        Renderer[] All = this.GetComponentsInChildren<Renderer>();
+        foreach (Renderer r in All)
         {
-            Renderer[] All = this.GetComponentsInChildren<Renderer>();
-            foreach (Renderer r in All)
-            {
-                r.enabled = hide;
-            }
+            r.enabled = hide;
         }
     }
 }
+
