@@ -17,16 +17,6 @@ public class UnityClient : MonoBehaviour
 
     public string host_ip = "localhost";
     public int host_port = 27;
-  
-    private double x = 0.2;
-    private double y = 0.2;
-    private double z = 0.15;
-    private double rx = -0.6;
-    private double ry = 1.47;
-    private double rz = 0.62;
-
-    private double a = 2;
-    private double v = 1.5;
 
     private double prev_x, prev_y, prev_z;
 

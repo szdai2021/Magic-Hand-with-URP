@@ -12,7 +12,7 @@ public class HideGameObjectRender : MonoBehaviour
         Renderer[] All = this.GetComponentsInChildren<Renderer>();
         foreach (Renderer r in All)
         {
-            r.enabled = hide;
+            r.enabled = !hide;
         }
     }
 }

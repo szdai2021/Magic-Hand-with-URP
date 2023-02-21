@@ -30,14 +30,14 @@ public class GraphCreator : MonoBehaviour
     private Vector2 y_range = new Vector2(0f, 0f);
     private Vector2 z_range = new Vector2(0f, 0f);
 
-    private void Start()
-    {
-        defineContainersize();
+    //private void Start()
+    //{
+    //    defineContainersize();
 
-        openAndReadFile();
+    //    openAndReadFile();
 
-        create3DScatter();
-    }
+    //    create3DScatter();
+    //}
 
     public void defineContainersize()
     {
@@ -55,9 +55,6 @@ public class GraphCreator : MonoBehaviour
         for(int i = 1; i<rawData.Columns; i+= stepSize)
         {
             GameObject g = Instantiate(scatterPoint);
-            print(rawData.getValue(dimensionIndex1, i));
-            print(rawData.getValue(dimensionIndex2, i));
-            print(rawData.getValue(dimensionIndex3, i));
 
             g.transform.position = new Vector3(
                             mapValueToNewRange(x_in_range.y, x_in_range.x, 8f, -8f, float.Parse(rawData.getValue(dimensionIndex1, i))),

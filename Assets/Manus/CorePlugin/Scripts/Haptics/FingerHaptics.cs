@@ -87,7 +87,7 @@ namespace Manus.Haptics
 
 				if (!t_Exists)
 				{
-					if (m_Collisions[t_Collider].UpdateTimeout(Time.fixedDeltaTime)) ;
+					if (m_Collisions[t_Collider].UpdateTimeout(Time.fixedDeltaTime))
 					m_Collisions.Remove(t_Collider);
 				}
 			}
