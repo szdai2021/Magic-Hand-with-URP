@@ -38,6 +38,11 @@ public class UnityClient : MonoBehaviour
     public PhysicalPropReference PPR;
     public bool startCalibration = true;
 
+    public Vector3 posVector = new Vector3(0.2f, 0.2f, 0.2f);
+    public Vector3 rotVector = new Vector3(-0.6f, 1.47f, 0.62f);
+    public float[] jointAngleBias = { 0, 0, 0, 0, 0, 0 };
+
+    private double jointAngleBias_6 = -0.15;
     private GameObject virtualEndEffector;
 
     void Start()
@@ -91,11 +96,11 @@ public class UnityClient : MonoBehaviour
                 unityCoordMatrix[3, 0] = 1f;
 
                 // send command to robot for the second movement and wait for 5 seconds
-                customMove(0.35f, 0.1f, 0.1f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
+                customMove(0.35f, 0.1f, 0.15f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(1f);
-                customMove(0.35f, 0.1f, 0.1f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
+                customMove(0.35f, 0.1f, 0.15f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(1f);
-                customMove(0.35f, 0.1f, 0.1f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
+                customMove(0.35f, 0.1f, 0.15f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 
@@ -155,7 +160,7 @@ public class UnityClient : MonoBehaviour
 
                 transMatrix = robotCoordMatrix * unityCoordMatrix.inverse;
 
-                customMove(-1.8765f, -1.22337f, 2.4f, -1.19516f, 2.06182f, -7.85783f, movementType: 3, interruptible: 0);
+                customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3, interruptible: 0);
 
                 startCalibration = false;
             }
@@ -165,7 +170,7 @@ public class UnityClient : MonoBehaviour
 
     public void initialPos()
     {
-        customMove(-1.8765, -1.22337, 2.4, -1.19516, 2.06182, -7.85783, movementType: 3);
+        customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3);
     }
 
     public void customMove(double xi, double yi, double zi, double rxi, double ryi, double rzi,
@@ -173,10 +178,19 @@ public class UnityClient : MonoBehaviour
         double angle1 = 0, double angle2 = 0, double angle3 = 0, double angle4 = 0, double angle5 = 0, double angle6 = 0,
         int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1) // movementType 0: jointspace linear; Type 1: toolspace linear; Type 2: circular; Type 3: jointspace linear by joint pos; Type 4: speedl; Type 5: gripper only
     {
-        string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, blend_r, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6, movementType, extra1, extra2, extra3, radius, interruptible);
-        outChannel.Write(cmd);
-        outChannel.Flush();
-        receiveFlag = false;
+        
+        if (zi < 0.15 & movementType < 3)
+        {
+            print("Risk Alert: Robot position is too low");
+        }
+        else
+        {
+            string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, blend_r, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible);
+            outChannel.Write(cmd);
+            outChannel.Flush();
+            receiveFlag = false;
+        }
+
     }
 
     public void changeGripperDiameter(float d)
@@ -230,6 +244,11 @@ public class UnityClient : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown("space"))
+        {
+            customMove(posVector.x, posVector.y, posVector.z, rotVector.x, rotVector.y, rotVector.z, angle6:jointAngleBias[5], movementType: 1, interruptible: 0);
+        }
+
         if (fromRobot.StartsWith("R"))
         {
             DateTime dt2 = DateTime.Now;

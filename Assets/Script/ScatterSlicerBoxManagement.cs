@@ -18,6 +18,10 @@ public class ScatterSlicerBoxManagement : MonoBehaviour
     public GameObject slicingBoxParent;
 
     public VRHandControl VR_HandController;
+
+    public GameObject p1;
+    public GameObject p2;
+
     private bool prevGestureDetection;
     private bool prevRotationDetection;
 
@@ -29,7 +33,9 @@ public class ScatterSlicerBoxManagement : MonoBehaviour
         if ((prevGestureDetection & !VR_HandController.gestureDetection) | (prevRotationDetection & !VR_HandController.rotationGesture))
         {
             //this.transform.rotation = DW2_PlaceHolder.transform.rotation;
-            this.transform.LookAt(DW2_PlaceHolder.transform);
+
+            Vector3 customNormal = p2.transform.position - p1.transform.position;
+            this.transform.up = customNormal.normalized;
         }
 
         prevGestureDetection = VR_HandController.gestureDetection;
