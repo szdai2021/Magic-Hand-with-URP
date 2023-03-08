@@ -14,6 +14,7 @@ public class VRHandControl : MonoBehaviour
     public GameObject thumb;
 
     public float gestureThreshold = 0;
+    public int gestureDetectingDelay = 100;
 
     public directionWheelControl DWC1;
     public directionWheelControl DWC2;
@@ -239,12 +240,12 @@ public class VRHandControl : MonoBehaviour
         {
             gestureCounter++;
 
-            if (gestureCounter == 100)
+            if (gestureCounter == gestureDetectingDelay)
             {
                 positionReference = this.transform.position;
             }
 
-            if (gestureCounter > 100)
+            if (gestureCounter > gestureDetectingDelay)
             {
                 gestureDetection = true;
             }
@@ -266,12 +267,12 @@ public class VRHandControl : MonoBehaviour
         {
             rotationGestureCounter++;
 
-            if (rotationGestureCounter == 100)
+            if (rotationGestureCounter == gestureDetectingDelay)
             {
                 RotationReference = this.transform.rotation;
             }
 
-            if (rotationGestureCounter > 100)
+            if (rotationGestureCounter > gestureDetectingDelay)
             {
                 rotationGesture = true;
 
