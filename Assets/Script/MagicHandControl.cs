@@ -37,6 +37,7 @@ public class MagicHandControl : MonoBehaviour
     public VRHandArmRender ArmRender;
 
     public Vector3 cameraToHandOffset = Vector3.zero;
+    public GameObject DW2_PlaceHolder;
     public GameObject Camera;
     public GameObject cameraParent;
 
@@ -62,6 +63,9 @@ public class MagicHandControl : MonoBehaviour
     public int Scenario_No = -1; // 1 - magic hand; 2 - connected hand; 3 - portals
     public int experimentStage = -1;
 
+    public bool rotationLock = false;
+
+
     private int prevExperimentStage = -1;
     private bool prevExperimentStart = false;
     private List<int> trainingOrder = new List<int>();
@@ -72,6 +76,14 @@ public class MagicHandControl : MonoBehaviour
     private float timeStamp;
     private GameObject currentDataPoint;
     private int duplicateFileIndex = 0;
+
+    private Quaternion rotationReference;
+    private Quaternion lastFrameHandRotation;
+
+    private bool prevStartPointTouched = false;
+    private bool prevDataPointTouched = false;
+
+
 
     static public bool startPointTouched = false;
     static public bool dataPointTouched = false;
@@ -89,6 +101,8 @@ public class MagicHandControl : MonoBehaviour
         trainingOrder.Add(427);
         trainingOrder.Add(311);
         trainingOrder.Add(86);
+
+        rotationReference = Camera.transform.rotation;
     }
 
     // Update is called once per frame
@@ -182,8 +196,12 @@ public class MagicHandControl : MonoBehaviour
                 {
                     startPoint.SetActive(true);
 
+                    GameObject newPoint1 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
+                    newPoint1.transform.SetParent(sphereParentTwin.transform);
+                    newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+
                     GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-                    newPoint2.transform.SetParent(sphereParentTwin.transform);
+                    newPoint2.transform.SetParent(sphereParent.transform);
                     newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
                 }
             }
@@ -209,6 +227,10 @@ public class MagicHandControl : MonoBehaviour
 
                 cameraParent.SetActive(true);
                 Camera.transform.position = VRHandTwin.transform.position;
+                if (rotationLock)
+                {
+                    Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
+                }
 
                 if (current_gestureDetection == false & prev_gestureDetection == true)
                 {
@@ -224,6 +246,10 @@ public class MagicHandControl : MonoBehaviour
 
                 cameraParent.SetActive(true);
                 Camera.transform.position = VRHandTwin.transform.position;
+                if (rotationLock)
+                {
+                    Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
+                }
 
                 if (current_gestureDetection == false & prev_gestureDetection == true)
                 {
@@ -250,6 +276,10 @@ public class MagicHandControl : MonoBehaviour
 
                 cameraParent.SetActive(true);
                 Camera.transform.position = VRHandTwin.transform.position;
+                if (rotationLock)
+                {
+                    Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
+                }
 
                 if (current_gestureDetection == false & prev_gestureDetection == true)
                 {
@@ -276,6 +306,19 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
 
+            //print(closestDataPoint.name + " " + 
+            //    robotRange.bounds.Contains(closestDataPoint.transform.position) + " " +
+            //    Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position).ToString() + " " +
+            //    unityClient.startCalibration + " " +
+            //    prev_gestureDetection + " " +
+            //    current_gestureDetection + " " +
+            //    (robotRange.bounds.Contains(closestDataPoint.transform.position) &
+            //Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
+            //unityClient.startCalibration == false &
+            //prev_gestureDetection == true &
+            //current_gestureDetection == false
+            //));
+
             if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
             Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
             unityClient.startCalibration == false &
@@ -292,15 +335,22 @@ public class MagicHandControl : MonoBehaviour
 
                 prevCloesetVector = closestDataPoint.transform.position;
             }
+            //else if(prev_gestureDetection == false & current_gestureDetection == true)
+            //{
+            //    unityClient.initialPos();
+            //}
         }
 
         prev_gestureDetection = current_gestureDetection;
+        lastFrameHandRotation = DW2_PlaceHolder.transform.rotation;
     }
 
     private void afterHandCollision()
     {
-        if (startPointTouched)
+        if (startPointTouched & !prevStartPointTouched)
         {
+            startPoint.SetActive(false);
+
             // start timer here
             if (experimentStage == 1)
             {
@@ -325,16 +375,25 @@ public class MagicHandControl : MonoBehaviour
                 GameObject.Destroy(g.gameObject);
             }
 
-            if (sphereParentTwin.transform.childCount == 0)
+            foreach (Transform g in sphereParent.transform)
             {
-                GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
-                newPoint2.transform.SetParent(sphereParentTwin.transform);
-                newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+                GameObject.Destroy(g.gameObject);
             }
 
-            print("start point touched");
+            GameObject newPoint1 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
+            newPoint1.transform.SetParent(sphereParentTwin.transform);
+            newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+            
+
+            GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
+            newPoint2.transform.SetParent(sphereParent.transform);
+            newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+
+            newPoint1.transform.localPosition = newPoint2.transform.localPosition;
+
+
         }
-        else if(dataPointTouched)
+        else if(dataPointTouched & !prevDataPointTouched)
         {
             if (dataPointIndex == orderInUse[currentOrderIndex])
             {
@@ -355,7 +414,7 @@ public class MagicHandControl : MonoBehaviour
                     currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
                 }
 
-                if (currentOrderIndex + 1 > orderInUse.Count)
+                if (currentOrderIndex + 1 >= orderInUse.Count)
                 {
                     experimentStage += 1;
 
@@ -372,14 +431,28 @@ public class MagicHandControl : MonoBehaviour
                         GameObject.Destroy(g.gameObject);
                     }
 
+                    foreach (Transform g in sphereParent.transform)
+                    {
+                        GameObject.Destroy(g.gameObject);
+                    }
+
+                    GameObject newPoint1 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
+                    newPoint1.transform.SetParent(sphereParentTwin.transform);
+                    newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+
                     GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-                    newPoint2.transform.SetParent(sphereParentTwin.transform);
+                    newPoint2.transform.SetParent(sphereParent.transform);
                     newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+
+                    newPoint1.transform.localPosition = newPoint2.transform.localPosition;
                 }
 
-                print("data point touched");
+                //print("data point touched");
             }
         }
+
+        prevStartPointTouched = startPointTouched;
+        prevDataPointTouched = dataPointTouched;
     }
 
     private void rearrangeOrder()

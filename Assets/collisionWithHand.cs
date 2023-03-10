@@ -17,8 +17,6 @@ public class collisionWithHand : MonoBehaviour
                 yield return new WaitForSeconds(1.5f);
 
                 MagicHandControl.startPointTouched = true;
-
-                otherCollider.gameObject.SetActive(false);
             }
 
             if (dataPointTouched)
@@ -43,16 +41,12 @@ public class collisionWithHand : MonoBehaviour
     {
         if (other.gameObject.name == "startPoint")
         {
-            print("start point");
-
             startPointTouched = true;
             
             //MagicHandControl.startPointTouched = true;
         }
         else if (other.gameObject.tag == "DataPoint")
         {
-            print("data point");
-
             dataPointTouched = true;
             //MagicHandControl.dataPointTouched = true;
 

@@ -41,6 +41,7 @@ public class UnityClient : MonoBehaviour
     public Vector3 posVector = new Vector3(0.2f, 0.2f, 0.2f);
     public Vector3 rotVector = new Vector3(-0.6f, 1.47f, 0.62f);
     public float[] jointAngleBias = { 0, 0, 0, 0, 0, 0 };
+    public int moveType = 1;
 
     private double jointAngleBias_6 = -0.15;
     private GameObject virtualEndEffector;
@@ -48,13 +49,13 @@ public class UnityClient : MonoBehaviour
     void Start()
     {
         client = new TcpClient(host_ip, host_port);
-        Debug.Log("Connected to relay server");
+        //Debug.Log("Connected to relay server");
 
         stream = client.GetStream();
         inChannel = new StreamReader(client.GetStream());
         outChannel = new StreamWriter(client.GetStream());
 
-        virtualEndEffector = PPR.TCP_Center;
+        virtualEndEffector = PPR.TCP_Center_Tracked;
 
         initialPos();
 
@@ -67,8 +68,8 @@ public class UnityClient : MonoBehaviour
 
     IEnumerator RobotCoordUnityCoordCalibration()
     {
-        // wait for 15 seconds before the calibration
-        yield return new WaitForSeconds(15f);
+        // wait for 5 seconds before the calibration
+        yield return new WaitForSeconds(5f);
 
         while (true)
         {
@@ -160,6 +161,8 @@ public class UnityClient : MonoBehaviour
 
                 transMatrix = robotCoordMatrix * unityCoordMatrix.inverse;
 
+                //print(transMatrix);
+
                 customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3, interruptible: 0);
 
                 startCalibration = false;
@@ -178,19 +181,22 @@ public class UnityClient : MonoBehaviour
         double angle1 = 0, double angle2 = 0, double angle3 = 0, double angle4 = 0, double angle5 = 0, double angle6 = 0,
         int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1) // movementType 0: jointspace linear; Type 1: toolspace linear; Type 2: circular; Type 3: jointspace linear by joint pos; Type 4: speedl; Type 5: gripper only
     {
-        
+        string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, blend_r, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible);
+
+        //print(cmd);
+
         if (zi < 0.15 & movementType < 3)
         {
             print("Risk Alert: Robot position is too low");
         }
         else
         {
-            string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, blend_r, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible);
             outChannel.Write(cmd);
             outChannel.Flush();
             receiveFlag = false;
         }
 
+        
     }
 
     public void changeGripperDiameter(float d)
@@ -213,6 +219,8 @@ public class UnityClient : MonoBehaviour
             acc = Math.Log(1 + distance) * scale + 0.3;
             speed = Math.Log(1 + distance) * scale + 0.3;
         }
+
+        interruptible = 1;
 
         string cmd = "(" + Pos_x + "," + Pos_y + "," + Pos_z + ","
                + Rot_x + "," + Rot_y + "," + Rot_z + ","
@@ -246,7 +254,12 @@ public class UnityClient : MonoBehaviour
     {
         if (Input.GetKeyDown("space"))
         {
-            customMove(posVector.x, posVector.y, posVector.z, rotVector.x, rotVector.y, rotVector.z, angle6:jointAngleBias[5], movementType: 1, interruptible: 0);
+            customMove(posVector.x, posVector.y, posVector.z, rotVector.x, rotVector.y, rotVector.z, angle6:jointAngleBias[5], movementType: moveType, interruptible: 0);
+        }
+
+        if (Input.GetKeyDown("i"))
+        {
+            initialPos();
         }
 
         if (fromRobot.StartsWith("R"))
@@ -279,6 +292,10 @@ public class UnityClient : MonoBehaviour
     public Vector3 convertUnityCoord2RobotCoord(Vector3 p1)
     {
         Vector3 new_p = transMatrix.MultiplyPoint3x4(p1);
+
+        print(p1);
+        print(new_p);
+        print(transMatrix);
 
         return new_p;
     }
