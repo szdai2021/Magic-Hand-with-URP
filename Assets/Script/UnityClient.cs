@@ -171,6 +171,15 @@ public class UnityClient : MonoBehaviour
         }
     }
 
+    public void setupServerConnection()
+    {
+        client = new TcpClient(host_ip, host_port);
+
+        stream = client.GetStream();
+        inChannel = new StreamReader(client.GetStream());
+        outChannel = new StreamWriter(client.GetStream());
+    }
+
     public void initialPos()
     {
         customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3);
@@ -179,7 +188,13 @@ public class UnityClient : MonoBehaviour
     public void customMove(double xi, double yi, double zi, double rxi, double ryi, double rzi,
         double acc = 0.3, double speed = 0.3, double blend_r = 0, double btn_press = 0, double scenario = 0, bool speedAdopt = false,
         double angle1 = 0, double angle2 = 0, double angle3 = 0, double angle4 = 0, double angle5 = 0, double angle6 = 0,
-        int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1) // movementType 0: jointspace linear; Type 1: toolspace linear; Type 2: circular; Type 3: jointspace linear by joint pos; Type 4: speedl; Type 5: gripper only
+        int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1) 
+        // movementType 0: jointspace linear;
+        // Type 1: toolspace linear;
+        // Type 2: circular;
+        // Type 3: jointspace linear by joint pos;
+        // Type 4: speedl;
+        // Type 5: gripper only;
     {
         string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, blend_r, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible);
 
@@ -220,7 +235,7 @@ public class UnityClient : MonoBehaviour
             speed = Math.Log(1 + distance) * scale + 0.3;
         }
 
-        interruptible = 1;
+        //interruptible = 1; 
 
         string cmd = "(" + Pos_x + "," + Pos_y + "," + Pos_z + ","
                + Rot_x + "," + Rot_y + "," + Rot_z + ","
@@ -239,7 +254,10 @@ public class UnityClient : MonoBehaviour
 
     private void getInfo()
     {
-       fromRobot = inChannel.ReadLine();
+        while (true)
+        {
+            fromRobot = inChannel.ReadLine();
+        }
     }
 
     public void stopRobot()
@@ -284,18 +302,18 @@ public class UnityClient : MonoBehaviour
             robotStopped = sp < 0.0001;
         }
 
-        getSpeedInfo.Abort();
-        getSpeedInfo = new Thread(getInfo);
-        getSpeedInfo.Start();
+        //getSpeedInfo.Abort();
+        //getSpeedInfo = new Thread(getInfo);
+        //getSpeedInfo.Start();
     }
 
     public Vector3 convertUnityCoord2RobotCoord(Vector3 p1)
     {
         Vector3 new_p = transMatrix.MultiplyPoint3x4(p1);
 
-        print(p1);
-        print(new_p);
-        print(transMatrix);
+        //print(p1);
+        //print(new_p);
+        //print(transMatrix);
 
         return new_p;
     }

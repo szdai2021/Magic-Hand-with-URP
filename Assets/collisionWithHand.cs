@@ -42,12 +42,17 @@ public class collisionWithHand : MonoBehaviour
         if (other.gameObject.name == "startPoint")
         {
             startPointTouched = true;
-            
+
+            print("start point touched");
+
             //MagicHandControl.startPointTouched = true;
         }
         else if (other.gameObject.tag == "DataPoint")
         {
             dataPointTouched = true;
+
+            print("data point touched");
+
             //MagicHandControl.dataPointTouched = true;
 
             //MagicHandControl.dataPointIndex = this.transform.GetSiblingIndex();

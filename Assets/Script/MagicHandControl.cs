@@ -18,7 +18,7 @@ public class MagicHandControl : MonoBehaviour
 
     public UnityClient unityClient;
 
-    public BoxCollider robotRange;
+    public MeshCollider robotRange;
 
     public PhysicalPropReference PPR;
 
@@ -40,6 +40,7 @@ public class MagicHandControl : MonoBehaviour
     public GameObject DW2_PlaceHolder;
     public GameObject Camera;
     public GameObject cameraParent;
+    private Vector3 cameraOffset = new Vector3(0f, 0f, 0.11f);
 
     public ScatterSlicerBoxManagement SSBM;
     public GameObject dataPoint;
@@ -226,7 +227,8 @@ public class MagicHandControl : MonoBehaviour
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
 
                 cameraParent.SetActive(true);
-                Camera.transform.position = VRHandTwin.transform.position;
+                Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
+
                 if (rotationLock)
                 {
                     Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
@@ -245,7 +247,7 @@ public class MagicHandControl : MonoBehaviour
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
 
                 cameraParent.SetActive(true);
-                Camera.transform.position = VRHandTwin.transform.position;
+                Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
                 if (rotationLock)
                 {
                     Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
@@ -275,7 +277,7 @@ public class MagicHandControl : MonoBehaviour
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
 
                 cameraParent.SetActive(true);
-                Camera.transform.position = VRHandTwin.transform.position;
+                Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
                 if (rotationLock)
                 {
                     Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
@@ -318,7 +320,7 @@ public class MagicHandControl : MonoBehaviour
             //prev_gestureDetection == true &
             //current_gestureDetection == false
             //));
-
+            
             if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
             Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
             unityClient.startCalibration == false &
@@ -331,7 +333,7 @@ public class MagicHandControl : MonoBehaviour
                 //unityClient.initialPos();
                 Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
 
-                unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 1);
+                unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 0);
 
                 prevCloesetVector = closestDataPoint.transform.position;
             }
