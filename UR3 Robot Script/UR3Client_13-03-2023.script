@@ -1,0 +1,233 @@
+set_standard_analog_input_domain(0, 1)
+set_standard_analog_input_domain(1, 1)
+set_tool_analog_input_domain(0, 1)
+set_tool_analog_input_domain(1, 1)
+set_analog_outputdomain(0, 0)
+set_analog_outputdomain(1, 0)
+set_tool_voltage(0)
+set_tcp(p[0.0,0.0,0.0,0.0,0.0,0.0])
+set_payload(1.2, [0.0,0.0,0.09])
+set_gravity([0.0, 0.0, 9.82])
+
+open=socket_open("192.168.1.104",21,"socket_0")
+
+while (open ==  False  ):
+    open=socket_open("192.168.1.104",21,"socket_0")
+end
+
+targetPos=p[0,0,0,0,0,0]
+pose_via=p[0,0,0,0,0,0]
+jointPos=[0,0,0,0,0,0]
+speedX=[0,0,0,0,0,0]
+tcpSpeed=p[0,0,0,0,0,0]
+angleBias=[0,0,0,0,0,0]
+
+a = 0
+v = 0
+counter=0
+force_flag=0
+first_flag = 1
+movementType = -1
+radius = 0
+scenario=0
+interruptible=1
+
+gripperDiameter = 20
+gripperForce = 1
+gripperEnable = 0
+
+threadInfoLock = 1
+
+prev_scenario=0
+
+thread stopRobot():
+    while(True):
+        if(scenario == 2):
+            stopj(15)
+        end
+    end
+end
+
+thrd1 = run stopRobot()
+
+thread moveRobot():
+    while(True):
+        if(interruptible == 1):
+            if(movementType == 0):
+                movej(target_joint_pose, a*12, v*12, 0, radius)
+            end
+
+            if(movementType == 1):
+                movel(target_joint_pose, a, v, 0, radius)
+            end
+
+            if(movementType == 2):
+                movec(pose_via, target_joint_pose, a, v, radius, 0)
+            end
+
+            if(movementType == 3):
+                movej(jointPos, a*12, v*12, 0, radius)
+            end
+
+            if(movementType == 4):
+                speedl(speedX, a, 0.15)
+            end
+
+            if(movementType == 5):
+                tfg_grip(gripperDiameter, gripperForce, external_grip=True, stop_if_no_force =False, tool_index=0, blocking=False)
+            end
+        end
+    end
+end
+
+kill thrd1
+thrd2 = run moveRobot()
+
+thread sendSpeedInfo():
+    #tcpSpeed = get_actual_tcp_speed()
+    #while(tcpSpeed[0] < 0.001):
+    while(1):
+
+        if(interruptible == 1):
+              socket_send_string("i" + to_str(get_actual_tcp_speed()))
+        end
+
+        sleep(0.05)
+    end
+end
+
+thrd3 = run sendSpeedInfo()
+
+while (True):
+
+    flag=0
+
+    receiveFromServ=socket_read_ascii_float(24)
+ 
+    while (receiveFromServ[0]!=24):
+        receiveFromServ=socket_read_ascii_float(24)
+    end
+
+    if(prev_scenario != 2):
+        kill thrd2
+    end
+
+    while (counter <6):
+
+        targetPos[counter]=receiveFromServ[counter+1]
+        jointPos[counter]=receiveFromServ[counter+1]
+
+        counter=counter+1
+    end
+    
+    a = receiveFromServ[counter+1]
+    v = receiveFromServ[counter+2]
+    force_flag = receiveFromServ[counter+3]
+    scenario = receiveFromServ[counter+4]
+    angleBias[0] = receiveFromServ[counter+5]
+    angleBias[1] = receiveFromServ[counter+6]
+    angleBias[2] = receiveFromServ[counter+7]
+    angleBias[3] = receiveFromServ[counter+8]
+    angleBias[4] = receiveFromServ[counter+9]
+    angleBias[5] = receiveFromServ[counter+10]
+    movementType = receiveFromServ[counter+11]
+    pose_via[0] = receiveFromServ[counter+12]
+    pose_via[1] = receiveFromServ[counter+13]
+    pose_via[2] = receiveFromServ[counter+14]
+    radius = receiveFromServ[counter+15]
+    interruptible = receiveFromServ[counter+16]
+    gripperEnable = receiveFromServ[counter+17]
+    gripperDiameter = receiveFromServ[counter+18]
+
+    pose_via[3] = targetPos[3]
+    pose_via[4] = targetPos[4]
+    pose_via[5] = targetPos[5]
+    speedX[0] = targetPos[0]
+    speedX[1] = targetPos[1]
+    speedX[2] = targetPos[2]
+
+    counter=0
+
+    if(first_flag):
+        a = 0.5
+        v = 0.5
+        first_flag = 0
+    end
+
+    if(scenario == 0):
+
+        if(force_flag == 0):
+            end_freedrive_mode()
+            socket_send_string(get_actual_tcp_pose())
+
+            if(movementType != 3 and movementType!=4):
+                target_joint_pose = get_inverse_kin(targetPos) 
+            
+                target_joint_pose = target_joint_pose + angleBias
+            end
+
+            if(movementType == 0):
+                if(interruptible == 0):
+                    movej(target_joint_pose, a*12, v*12, 0, radius)
+                end
+            end
+
+            if(movementType == 1):
+                if(interruptible == 0):
+                    movel(target_joint_pose, a, v, 0, radius)
+                end
+            end 
+
+            if(movementType == 2):
+                if(interruptible == 0):
+                    movec(pose_via, target_joint_pose, a, v, radius, 0)
+                end
+            end 
+
+            if(movementType == 3):
+                if(interruptible == 0):
+                    movej(jointPos, a*12, v*12, 0, radius)
+                end
+            end 
+
+            if(movementType == 4):
+                if(interruptible == 0):
+                    speedl(speedX, a, 0.15)
+                end
+            end 
+
+        else:
+            freedrive_mode()
+        end
+
+        if(prev_scenario == 2):
+            kill thrd1
+            thrd2 = run moveRobot()
+        else:
+            thrd2 = run moveRobot()
+        end
+    end
+
+    if(scenario == 1):
+        socket_send_string(get_actual_tcp_pose())
+    end
+    
+    if(scenario == 2):
+        kill thrd2
+        thrd1 = run stopRobot()
+    end
+
+    if(scenario == 3):
+        socket_send_string("R")
+    end
+
+    if(scenario == 4):
+        # standby
+        movementType = -1
+    end
+
+    socket_send_string(get_actual_joint_positions())
+
+    prev_scenario = scenario
+    
+end
