@@ -66,7 +66,6 @@ public class MagicHandControl : MonoBehaviour
 
     public bool rotationLock = false;
 
-
     private int prevExperimentStage = -1;
     private bool prevExperimentStart = false;
     private List<int> trainingOrder = new List<int>();
@@ -74,6 +73,8 @@ public class MagicHandControl : MonoBehaviour
     private List<int> orderInUse = new List<int>();
     private int currentOrderIndex = -1;
     private List<float> timeList = new List<float>();
+    private List<Vector3> posList = new List<Vector3>();
+    private Dictionary<int, List<Vector3>> trajectoryDict = new Dictionary<int, List<Vector3>>();
     private float timeStamp;
     private GameObject currentDataPoint;
     private int duplicateFileIndex = 0;
@@ -83,8 +84,6 @@ public class MagicHandControl : MonoBehaviour
 
     private bool prevStartPointTouched = false;
     private bool prevDataPointTouched = false;
-
-
 
     static public bool startPointTouched = false;
     static public bool dataPointTouched = false;
@@ -173,13 +172,21 @@ public class MagicHandControl : MonoBehaviour
                     orderInUse = trainingOrder;
 
                     timeList = new List<float>();
+                    posList = new List<Vector3>();
+                    trajectoryDict = new Dictionary<int, List<Vector3>>();
                     break;
                 case 1: // in progress stage
                     orderInUse = orderList;
+
+                    if (!startPoint.activeSelf)
+                    {
+                        posList.Add(VRHandTwin.transform.position);
+                    }
                     break;
                 case 2: // finished
-                    recordExperimentResult();
+                    saveExperimentResult();
 
+                    saveHandMovement();
                     // show finished indication
                     finishText.SetActive(true);
 
@@ -393,6 +400,12 @@ public class MagicHandControl : MonoBehaviour
 
             newPoint1.transform.localPosition = newPoint2.transform.localPosition;
 
+            if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
+            {
+                trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+
+                posList = new List<Vector3>();
+            }
 
         }
         else if(dataPointTouched & !prevDataPointTouched)
@@ -480,70 +493,6 @@ public class MagicHandControl : MonoBehaviour
         orderList.AddRange(firstValues);
     }
 
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (other.gameObject.name == "startPoint")
-    //    {
-    //        startPoint.SetActive(false);
-
-    //        // start timer here
-    //        if (experimentStage == 1)
-    //        {
-    //            timeStamp = Time.time;
-    //        }
-
-    //        currentDataPoint = scatterParent.transform.GetChild(orderInUse[currentOrderIndex]).gameObject;
-
-    //        currentDataPoint.layer = LayerMask.NameToLayer("Outline");
-
-    //        foreach (Transform g in sphereParentTwin.transform)
-    //        {
-    //            GameObject.Destroy(g.gameObject);
-    //        }
-
-    //        GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
-    //        newPoint2.transform.SetParent(sphereParentTwin.transform);
-    //        newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-
-    //        print("start point touched");
-    //    }
-    //    else if (other.gameObject.tag == "DataPoint")
-    //    {
-    //        if (other.transform.GetSiblingIndex() == currentOrderIndex)
-    //        {
-    //            // stop timer here
-    //            if (experimentStage == 1)
-    //            {
-    //                timeList.Add(Time.time - timeStamp);
-    //            }
-
-    //            currentDataPoint.layer = LayerMask.NameToLayer("Default");
-
-    //            if (currentOrderIndex + 1 > orderInUse.Count)
-    //            {
-    //                experimentStage += 1;
-    //            }
-    //            else
-    //            {
-    //                currentOrderIndex += 1;
-
-    //                startPoint.SetActive(true);
-
-    //                foreach (Transform g in sphereParentTwin.transform)
-    //                {
-    //                    GameObject.Destroy(g.gameObject);
-    //                }
-
-    //                GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-    //                newPoint2.transform.SetParent(sphereParentTwin.transform);
-    //                newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-    //            }
-
-    //            print("data point touched");
-    //        }
-    //    }
-    //}
-
     public static (Vector3 targetPos,Quaternion targetRot) getTargetPosRot(Transform T_from, Transform T_to, Transform source)
     {
         Vector3 targetPos;
@@ -596,9 +545,9 @@ public class MagicHandControl : MonoBehaviour
         reader.Close();
     }
 
-    private void recordExperimentResult() // save the result of experiment with participant number, scenario number in a txt file
+    private void saveExperimentResult() // save the result of experiment with participant number, scenario number in a txt file
     {
-        string fileName = "YO-YO" + DateTime.Now.ToString("yyyy-MM-dd") + "_P" + P_Number.ToString() + "_S" + Scenario_No.ToString();
+        string fileName = "YO-YO " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
         string saveFileName = "Assets/RawData/" + fileName + ".txt";
 
         while (File.Exists(saveFileName))
@@ -616,6 +565,38 @@ public class MagicHandControl : MonoBehaviour
         foreach (var value in timeList)
         {
             sw.WriteLine(value.ToString());
+        }
+        sw.WriteLine(" ");
+
+        sw.Close();
+    }
+
+    private void saveHandMovement()
+    {
+        string fileName = "YO-YO Hand Trajectory " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        string saveFileName = "Assets/RawData/" + fileName + ".txt";
+
+        while (File.Exists(saveFileName))
+        {
+            duplicateFileIndex++;
+            saveFileName = "Assets/RawData/" + fileName + "_D" + duplicateFileIndex.ToString() + ".txt";
+        }
+
+        StreamWriter sw = new StreamWriter(saveFileName);
+
+        sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
+        sw.WriteLine(" ");
+
+        sw.WriteLine("Index No.     Position.x      Position.y      Position.z");
+        foreach (int index in trajectoryDict.Keys)
+        {
+            foreach (Vector3 pos in trajectoryDict[index])
+            {
+                sw.WriteLine(index.ToString() + "      " + 
+                                pos.x + "      " +
+                                pos.y + "      " +
+                                pos.z);
+            }
         }
         sw.WriteLine(" ");
 

@@ -70,6 +70,9 @@ public class VRHandControl : MonoBehaviour
     private GameObject DirectionArrow_Parent = null;
     private GameObject DWC2_Parent = null;
 
+    public bool posDetectionLock = false;
+    public bool rotDetectionLock = false;
+
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
@@ -233,62 +236,68 @@ public class VRHandControl : MonoBehaviour
 
     private void checkTranslationGesture()
     {
-        if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
-            Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
-            Vector3.Distance(palmCenter.transform.position, pinky.transform.position) < gestureThreshold &
-            Vector3.Distance(palmCenter.transform.position, middle.transform.position) < gestureThreshold)
+        if (!posDetectionLock)
         {
-            gestureCounter++;
-
-            if (gestureCounter == gestureDetectingDelay)
+            if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, pinky.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, middle.transform.position) < gestureThreshold)
             {
-                positionReference = this.transform.position;
-            }
+                gestureCounter++;
 
-            if (gestureCounter > gestureDetectingDelay)
-            {
-                gestureDetection = true;
+                if (gestureCounter == gestureDetectingDelay)
+                {
+                    positionReference = this.transform.position;
+                }
+
+                if (gestureCounter > gestureDetectingDelay)
+                {
+                    gestureDetection = true;
+                }
             }
-        }
-        else
-        {
-            gestureDetection = false;
-            DWC2.hide = true;
-            gestureCounter = 0;
+            else
+            {
+                gestureDetection = false;
+                DWC2.hide = true;
+                gestureCounter = 0;
+            }
         }
     }
 
     private void checkRotationGesture()
     {
-        if (Vector3.Distance(palmCenter.transform.position, index.transform.position) > gestureThreshold &
-            Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
-            Vector3.Distance(palmCenter.transform.position, pinky.transform.position) < gestureThreshold &
-            Vector3.Distance(palmCenter.transform.position, middle.transform.position) > gestureThreshold)
+        if (!rotDetectionLock)
         {
-            rotationGestureCounter++;
-
-            if (rotationGestureCounter == gestureDetectingDelay)
+            if (Vector3.Distance(palmCenter.transform.position, index.transform.position) > gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, pinky.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, middle.transform.position) > gestureThreshold)
             {
-                RotationReference = this.transform.rotation;
-            }
+                rotationGestureCounter++;
 
-            if (rotationGestureCounter > gestureDetectingDelay)
-            {
-                rotationGesture = true;
-
-                if ((int)methodSwitch != 3)
+                if (rotationGestureCounter == gestureDetectingDelay)
                 {
-                    DWC2.hide = false;
-                    DWC1.hide = false;
+                    RotationReference = this.transform.rotation;
+                }
+
+                if (rotationGestureCounter > gestureDetectingDelay)
+                {
+                    rotationGesture = true;
+
+                    if ((int)methodSwitch != 3)
+                    {
+                        DWC2.hide = false;
+                        DWC1.hide = false;
+                    }
                 }
             }
-        }
-        else
-        {
-            DWC1.hide = true;
-            DWC2.hide = true;
-            rotationGesture = false;
-            rotationGestureCounter = 0;
+            else
+            {
+                DWC1.hide = true;
+                DWC2.hide = true;
+                rotationGesture = false;
+                rotationGestureCounter = 0;
+            }
         }
     }
 
