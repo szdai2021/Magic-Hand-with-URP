@@ -73,6 +73,13 @@ public class VRHandControl : MonoBehaviour
     public bool posDetectionLock = false;
     public bool rotDetectionLock = false;
 
+    public bool fixedPosDetectionMode = false;
+    public Collider targetAreaCollider;
+    public GameObject grapTarget;
+    public GameObject grapTargetOnHand;
+
+    public UnityClient unity_client;
+
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
@@ -238,28 +245,50 @@ public class VRHandControl : MonoBehaviour
     {
         if (!posDetectionLock)
         {
-            if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
-                        Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
-                        Vector3.Distance(palmCenter.transform.position, pinky.transform.position) < gestureThreshold &
-                        Vector3.Distance(palmCenter.transform.position, middle.transform.position) < gestureThreshold)
+            if (fixedPosDetectionMode)
             {
-                gestureCounter++;
-
-                if (gestureCounter == gestureDetectingDelay)
-                {
-                    positionReference = this.transform.position;
-                }
-
-                if (gestureCounter > gestureDetectingDelay)
-                {
-                    gestureDetection = true;
-                }
+                targetAreaCollider.gameObject.SetActive(true);
             }
             else
             {
-                gestureDetection = false;
-                DWC2.hide = true;
-                gestureCounter = 0;
+                targetAreaCollider.gameObject.SetActive(false);
+            }
+
+            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(VRHandTwin.transform.position))
+            {
+                if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, pinky.transform.position) < gestureThreshold &
+                        Vector3.Distance(palmCenter.transform.position, middle.transform.position) < gestureThreshold)
+                {
+                    gestureCounter++;
+
+                    if (gestureCounter == gestureDetectingDelay)
+                    {
+                        positionReference = this.transform.position;
+                    }
+
+                    if (gestureCounter > gestureDetectingDelay)
+                    {
+                        gestureDetection = true;
+
+                        grapTarget.SetActive(false);
+                        grapTargetOnHand.SetActive(true);
+
+                        if (fixedPosDetectionMode & !unity_client.homePosition)
+                        {
+                            unity_client.initialPos();
+                        }
+                    }
+                }
+                else
+                {
+                    gestureDetection = false;
+                    grapTarget.SetActive(true);
+                    grapTargetOnHand.SetActive(false);
+                    DWC2.hide = true;
+                    gestureCounter = 0;
+                }
             }
         }
     }
@@ -340,6 +369,8 @@ public class VRHandControl : MonoBehaviour
 
             Vector3 stepChange = directionOrientation.transform.localPosition.normalized / 100 * d / 15;
 
+            stepChange *= sigmoidCurveFactor(Vector3.Distance(VRHandTwin.transform.position, this.transform.position));
+
             VRHandTwinPosOffset_Local += stepChange;
         }
         else
@@ -347,6 +378,23 @@ public class VRHandControl : MonoBehaviour
             directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = true;
             DSC.posSyc = true;
         }
+    }
+
+    private float sigmoidCurveFactor(float magnitude)
+    {
+        float d = 5f;
+        float ratio;
+
+        float f1 = magnitude/d;
+
+        float exp1 = Mathf.Exp(magnitude);
+        float exp2 = Mathf.Exp(-magnitude);
+
+        float f2 = d*(exp1 - exp2) / (exp1 + exp2);
+
+        ratio = f2 / f1;
+
+        return ratio;
     }
 
     private void centerDirecting()

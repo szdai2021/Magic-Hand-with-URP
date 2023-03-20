@@ -1,12 +1,9 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.Net.Sockets;
 using System.IO;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
-using TMPro;
 
 public class UnityClient : MonoBehaviour
 {
@@ -45,6 +42,8 @@ public class UnityClient : MonoBehaviour
 
     private double jointAngleBias_6 = -0.15;
     private GameObject virtualEndEffector;
+
+    public bool homePosition = false;
 
     void Start()
     {
@@ -182,7 +181,8 @@ public class UnityClient : MonoBehaviour
 
     public void initialPos()
     {
-        customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3);
+        customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3, interruptible: 0);
+        homePosition = true;
     }
 
     public void customMove(double xi, double yi, double zi, double rxi, double ryi, double rzi,
@@ -209,6 +209,8 @@ public class UnityClient : MonoBehaviour
             outChannel.Write(cmd);
             outChannel.Flush();
             receiveFlag = false;
+
+            homePosition = false;
         }
 
         
