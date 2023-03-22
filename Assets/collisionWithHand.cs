@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class collisionWithHand : MonoBehaviour
 {
+    public VRHandControl VR_HandControl;
+
     private bool startPointTouched = false;
     private bool dataPointTouched = false;
 
@@ -39,25 +41,28 @@ public class collisionWithHand : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.name == "startPoint")
+        if (!VR_HandControl.gestureDetection)
         {
-            startPointTouched = true;
+            if (other.gameObject.name == "startPoint")
+            {
+                startPointTouched = true;
 
-            print("start point touched");
+                print("start point touched");
 
-            //MagicHandControl.startPointTouched = true;
+                //MagicHandControl.startPointTouched = true;
+            }
+            else if (other.gameObject.tag == "DataPoint")
+            {
+                dataPointTouched = true;
+
+                print("data point touched");
+
+                //MagicHandControl.dataPointTouched = true;
+
+                //MagicHandControl.dataPointIndex = this.transform.GetSiblingIndex();
+            }
         }
-        else if (other.gameObject.tag == "DataPoint")
-        {
-            dataPointTouched = true;
-
-            print("data point touched");
-
-            //MagicHandControl.dataPointTouched = true;
-
-            //MagicHandControl.dataPointIndex = this.transform.GetSiblingIndex();
-        }
-
+        
         otherCollider = other;
     }
 

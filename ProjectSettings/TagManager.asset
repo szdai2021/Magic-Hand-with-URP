@@ -12,6 +12,7 @@ TagManager:
   - Portal Parent
   - Ray
   - GlobalReference
+  - SkipHideScript
   layers:
   - Default
   - TransparentFX

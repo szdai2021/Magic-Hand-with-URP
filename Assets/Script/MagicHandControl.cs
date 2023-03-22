@@ -76,7 +76,7 @@ public class MagicHandControl : MonoBehaviour
     private List<Vector3> posList = new List<Vector3>();
     private Dictionary<int, List<Vector3>> trajectoryDict = new Dictionary<int, List<Vector3>>();
     private float timeStamp;
-    private GameObject currentDataPoint;
+    private GameObject currentDataPoint = null;
     private int duplicateFileIndex = 0;
 
     private Quaternion rotationReference;
@@ -88,6 +88,11 @@ public class MagicHandControl : MonoBehaviour
     static public bool startPointTouched = false;
     static public bool dataPointTouched = false;
     static public int dataPointIndex;
+
+    public Collider warningArea;
+    public Collider touchDetection;
+
+    private int touchFrameCounter = 0;
 
     private void Start()
     {
@@ -327,9 +332,19 @@ public class MagicHandControl : MonoBehaviour
             //prev_gestureDetection == true &
             //current_gestureDetection == false
             //));
-            
+
+            if (warningArea.bounds.Contains(sphereParent.transform.GetChild(0).position) & unityClient.homePosition)
+            {
+                warningArea.gameObject.GetComponent<MeshRenderer>().enabled = true;
+            }
+            else
+            {
+                warningArea.gameObject.GetComponent<MeshRenderer>().enabled = false;
+            }
+
             if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
             Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
+            !warningArea.gameObject.GetComponent<MeshRenderer>().enabled &
             unityClient.startCalibration == false &
             prev_gestureDetection == true & 
             current_gestureDetection == false
@@ -352,6 +367,32 @@ public class MagicHandControl : MonoBehaviour
 
         prev_gestureDetection = current_gestureDetection;
         lastFrameHandRotation = DW2_PlaceHolder.transform.rotation;
+
+        if (touchDetection.bounds.Contains(sphereParent.transform.GetChild(0).position))
+        {
+            touchFrameCounter += 1;
+        }
+        else
+        {
+            touchFrameCounter = 0;
+        }
+
+        if (touchFrameCounter > 60)
+        {
+            if (startPoint.activeSelf)
+            {
+                startPointTouched = true;
+            }
+            else
+            {
+                dataPointTouched = true;
+            }
+        }
+        else
+        {
+            startPointTouched = false;
+            dataPointTouched = false;
+        }
     }
 
     private void afterHandCollision()

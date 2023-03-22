@@ -254,7 +254,7 @@ public class VRHandControl : MonoBehaviour
                 targetAreaCollider.gameObject.SetActive(false);
             }
 
-            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(VRHandTwin.transform.position))
+            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(this.transform.position))
             {
                 if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
                         Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
@@ -385,10 +385,10 @@ public class VRHandControl : MonoBehaviour
         float d = 5f;
         float ratio;
 
-        float f1 = magnitude/d;
+        float f1 = magnitude;
 
-        float exp1 = Mathf.Exp(magnitude);
-        float exp2 = Mathf.Exp(-magnitude);
+        float exp1 = Mathf.Exp(magnitude/d);
+        float exp2 = Mathf.Exp(-magnitude/d);
 
         float f2 = d*(exp1 - exp2) / (exp1 + exp2);
 

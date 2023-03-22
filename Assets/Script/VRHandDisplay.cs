@@ -13,7 +13,7 @@ public class VRHandDisplay : MonoBehaviour
 
         foreach (Renderer rr in objectR)
         {
-            if (rr is LineRenderer)
+            if (rr.gameObject.tag == "SkipHideScript")
             {
 
             }
