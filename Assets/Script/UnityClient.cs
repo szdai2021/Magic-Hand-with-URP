@@ -186,9 +186,9 @@ public class UnityClient : MonoBehaviour
     }
 
     public void customMove(double xi, double yi, double zi, double rxi, double ryi, double rzi,
-        double acc = 0.3, double speed = 0.3, double blend_r = 0, double btn_press = 0, double scenario = 0, bool speedAdopt = false,
+        double acc = 0.3, double speed = 0.3, double btn_press = 0, double scenario = 0, bool speedAdopt = false,
         double angle1 = 0, double angle2 = 0, double angle3 = 0, double angle4 = 0, double angle5 = 0, double angle6 = 0,
-        int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1) 
+        int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1, int linearActuatorDistance = 0) 
         // movementType 0: jointspace linear;
         // Type 1: toolspace linear;
         // Type 2: circular;
@@ -196,7 +196,7 @@ public class UnityClient : MonoBehaviour
         // Type 4: speedl;
         // Type 5: gripper only;
     {
-        string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, blend_r, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible);
+        string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible, linearActuatorDistance);
 
         //print(cmd);
 
@@ -225,9 +225,9 @@ public class UnityClient : MonoBehaviour
     }
 
     private string packCMD(double Pos_x = 0.2, double Pos_y = 0.2, double Pos_z = 0.07, double Rot_x = -0.6, double Rot_y = 1.47, double Rot_z = 0.62, 
-        double acc = 0.3, double speed = 0.3, double blend_r = 0, double btn_press = 0, double scenario = 0, bool speedAdopt = false,
+        double acc = 0.3, double speed = 0.3, double btn_press = 0, double scenario = 0, bool speedAdopt = false,
         double angle1 = 0, double angle2 = 0, double angle3 = 0, double angle4 = 0, double angle5 = 0, double angle6 = 0,
-        int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1, int gripperEnable = 0, float gripperDiameter = 20) // movementType 0: jointspace linear; Type 1: toolspace linear; Type 2: circular; Type 3: jointspace linear by joint pos
+        int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1, int gripperEnable = 0, float gripperDiameter = 20, int linearActuatorDistance = 0) // movementType 0: jointspace linear; Type 1: toolspace linear; Type 2: circular; Type 3: jointspace linear by joint pos
     {
         if (speedAdopt)
         {
@@ -237,13 +237,11 @@ public class UnityClient : MonoBehaviour
             speed = Math.Log(1 + distance) * scale + 0.3;
         }
 
-        //interruptible = 1; 
-
         string cmd = "(" + Pos_x + "," + Pos_y + "," + Pos_z + ","
                + Rot_x + "," + Rot_y + "," + Rot_z + ","
                + acc + "," + speed + "," + btn_press + "," + scenario + "," + 
                angle1 + "," + angle2 + "," + angle3 + "," + angle4 + "," + angle5 + "," + angle6 + "," + 
-               movementType + "," + extra1 + "," + extra2 + "," + extra3 + "," + radius + "," + interruptible + "," + gripperEnable + "," + gripperDiameter + ")";
+               movementType + "," + extra1 + "," + extra2 + "," + extra3 + "," + radius + "," + interruptible + "," + gripperEnable + "," + gripperDiameter +"," + linearActuatorDistance + ")";
 
         prev_x = Pos_x;
         prev_y = Pos_y;
@@ -318,5 +316,10 @@ public class UnityClient : MonoBehaviour
         //print(transMatrix);
 
         return new_p;
+    }
+
+    public void testRobotPin()
+    {
+        customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3, interruptible: 0, scenario: 5);
     }
 }

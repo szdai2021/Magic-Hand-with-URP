@@ -64,7 +64,8 @@ public class VRHandControl : MonoBehaviour
     private LineRenderer lineRenderer;
     private Vector3 directionVector;
 
-    private GameObject selectedPortal = null;
+    //private GameObject selectedPortal = null;
+    public GameObject selectedPortal;
 
     private int prevScenario = -1;
     private GameObject DirectionArrow_Parent = null;
@@ -79,6 +80,7 @@ public class VRHandControl : MonoBehaviour
     public GameObject grapTargetOnHand;
 
     public UnityClient unity_client;
+    public GameObject stopPlane;
 
     private void Start()
     {
@@ -97,19 +99,24 @@ public class VRHandControl : MonoBehaviour
         {
             PortalCutOff.enable = true; // enable slicing plane on portals
 
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
-            {
-                if (selectedPortal == null)
-                {
-                    GameObject g = hit.transform.gameObject;
+            // disable portal selection on ray hit
+            //if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
+            //{
+            //    if (selectedPortal == null)
+            //    {
+            //        GameObject g = hit.transform.gameObject;
 
-                    selectedPortal = g;
+            //        selectedPortal = g;
 
-                    directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = selectedPortal;
-                    DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
-                    VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
-                }
-            }
+            //        directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = selectedPortal;
+            //        DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
+            //        VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
+            //    }
+            //}
+
+            directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = selectedPortal;
+            DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
+            VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
 
             // raycast renderring
             directionVector = frontSensor.transform.position - backSensor.transform.position;
@@ -153,10 +160,10 @@ public class VRHandControl : MonoBehaviour
                     Quaternion relativeRotation = this.transform.rotation * Quaternion.Inverse(RotationReference);
                     selectedPortal.transform.rotation = relativeRotation * selectedPortal.transform.rotation;
                 }
-                else
-                {
-                    selectedPortal = null;
-                }
+                //else
+                //{
+                //    selectedPortal = null;
+                //}
             }
             
 
@@ -170,6 +177,7 @@ public class VRHandControl : MonoBehaviour
 
             directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = DirectionArrow_Parent;
             DWC2.GetComponent<directionWheelControl>().posParent = DWC2_Parent;
+
 
             (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
 
@@ -208,6 +216,11 @@ public class VRHandControl : MonoBehaviour
             resetConfig();
         }
 
+        //if ()
+        //{
+
+        //}
+
         if (turnOnHandShadow)
         {
             if (gestureDetection | rotationGesture)
@@ -221,6 +234,16 @@ public class VRHandControl : MonoBehaviour
         }
 
         rotating();
+
+        // stopping plane method - inactive
+        //if (stopPlane.transform.GetChild(1).GetComponent<BoxCollider>().bounds.Contains(VRHandTwin.transform.position) & gestureDetection)
+        //{
+        //    stopPlane.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
+        //}
+        //else
+        //{
+        //    stopPlane.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
+        //}
 
         prevHandPos = this.transform.position;
         prevScenario = (int)methodSwitch;
@@ -370,6 +393,12 @@ public class VRHandControl : MonoBehaviour
             Vector3 stepChange = directionOrientation.transform.localPosition.normalized / 100 * d / 15;
 
             stepChange *= sigmoidCurveFactor(Vector3.Distance(VRHandTwin.transform.position, this.transform.position));
+
+            // stopping plane method - inactive
+            //if (!stopPlane.transform.GetChild(2).GetComponent<BoxCollider>().bounds.Contains(VRHandTwin.transform.position))
+            //{
+            //    VRHandTwinPosOffset_Local += stepChange;
+            //}
 
             VRHandTwinPosOffset_Local += stepChange;
         }

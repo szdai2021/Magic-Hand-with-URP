@@ -22,13 +22,22 @@ public class DebuggerTemplate : MonoBehaviour
 
     public Collider robotRange;
 
+    public Animator animator;
+    public AnimationClip clip_idle;
+    public AnimationClip clip_flying;
+    public int frameIndex = 0;
+    public GameObject animationObject;
+
+    public GameObject p1;
+    public GameObject p2;
+
     private void Start()
     {
         sliderReference = PPR.Touch_Point;
         robotEndEffector = PPR.TCP_Center;
     }
 
-        public void testRelativePosRotChange()
+    public void testRelativePosRotChange()
     {
         GameObject newObj = Instantiate(target);
 
@@ -71,6 +80,68 @@ public class DebuggerTemplate : MonoBehaviour
     public void reConnectToServer()
     {
         unityClient.setupServerConnection();
+    }
+
+    public void animationTest()
+    {
+        // Get the position of the GameObject
+        Vector3 currentPosition = animationObject.transform.position;
+
+        // Update the keyframe at the specified frame index with the current position
+        Keyframe keyframeX = new Keyframe(clip_flying.frameRate * 0, currentPosition.x);
+        Keyframe keyframeY = new Keyframe(clip_flying.frameRate * 0, currentPosition.y);
+        Keyframe keyframeZ = new Keyframe(clip_flying.frameRate * 0, currentPosition.z);
+
+        Keyframe keyframeX1 = new Keyframe(clip_flying.frameRate * 1/60, -0.793f);
+        Keyframe keyframeY1 = new Keyframe(clip_flying.frameRate * 1/60, 0.398f);
+        Keyframe keyframeZ1 = new Keyframe(clip_flying.frameRate * 1/60, 0.48f);
+
+        AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
+        AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
+        AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
+
+        clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.x", curveX);
+        clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.y", curveY);
+        clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.z", curveZ);
+    }
+
+    public void startAnimation()
+    {
+        animator.SetTrigger("start flying");
+    }
+
+    public void testRobotPin()
+    {
+        unityClient.testRobotPin();
+    }
+
+    public void speedlTest1()
+    {
+        Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(p1.transform.position);
+        Vector3 referencePos2 = unityClient.convertUnityCoord2RobotCoord(p2.transform.position);
+
+        float ax = referencePos1.x - referencePos2.x;
+        float ay = referencePos1.y - referencePos2.y;
+        float az = referencePos1.z - referencePos2.z;
+
+        float norm = Mathf.Sqrt(ax * ax + ay * ay + az * az);
+
+        unityClient.customMove(ax / norm, ay / norm, az / norm, -0.6, 1.47, 0.62, speed: 0.01, acc: 0.15f, movementType: 4); // strange speedl behaviour
+
+    }
+
+    public void speedlTest2()
+    {
+        Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(p2.transform.position);
+        Vector3 referencePos2 = unityClient.convertUnityCoord2RobotCoord(p1.transform.position);
+
+        float ax = referencePos1.x - referencePos2.x;
+        float ay = referencePos1.y - referencePos2.y;
+        float az = referencePos1.z - referencePos2.z;
+
+        float norm = Mathf.Sqrt(ax * ax + ay * ay + az * az);
+
+        unityClient.customMove(ax / norm, ay / norm, az / norm, -0.6, 1.47, 0.62, speed: 0.01, acc: 0.15f, movementType: 4); // strange speedl behaviour
     }
 }
 

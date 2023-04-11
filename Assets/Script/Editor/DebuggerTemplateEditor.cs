@@ -25,6 +25,31 @@ public class DebuggerTemplateEditor : Editor
         {
             myScript.reConnectToServer();
         }
+
+        if (GUILayout.Button("Test the Animation"))
+        {
+            myScript.animationTest();
+        }
+
+        if (GUILayout.Button("Start the Animation"))
+        {
+            myScript.startAnimation();
+        }
+
+        if (GUILayout.Button("Start Robot Pin Test"))
+        {
+            myScript.testRobotPin();
+        }
+
+        if (GUILayout.Button("Start Speedl Test 1"))
+        {
+            myScript.speedlTest1();
+        }
+
+        if (GUILayout.Button("Start Speedl Test 2"))
+        {
+            myScript.speedlTest2();
+        }
     }
 
 }
