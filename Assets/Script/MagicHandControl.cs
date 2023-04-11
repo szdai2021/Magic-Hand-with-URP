@@ -100,6 +100,10 @@ public class MagicHandControl : MonoBehaviour
     public AnimationClip clip_flying;
     public GameObject animationObject;
 
+    public Animator animatorPortal;
+    public AnimationClip clip_flying_portal;
+    public GameObject animationObjectPortal;
+
     public GameObject stopPlane;
     private bool startAnimationFlag = false;
 
@@ -109,11 +113,16 @@ public class MagicHandControl : MonoBehaviour
     private Vector3 normal;
     private GameObject trackedEndEffector;
 
+    public Collider robotRangeEndEffector;
     public GameObject planeNormalParent;
     public bool startFollowUp;
     public int skipThreshold;
+    public int linearDistanceTest = 0;
 
     private int skipFrameCounter;
+    private int maxLinearActuatorDistance = 1;
+
+    public bool printOrderFlag = false;
 
     IEnumerator delayStart()
     {
@@ -160,6 +169,12 @@ public class MagicHandControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (printOrderFlag)
+        {
+            printOrder();
+            printOrderFlag = false;
+        }
+
         //// define the activated scatter slice layer and create data point in the sphere parent
         //if (sphereParent.transform.childCount > 0)
         //{
@@ -264,7 +279,8 @@ public class MagicHandControl : MonoBehaviour
                     newPoint2.transform.SetParent(sphereParent.transform);
                     newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
 
-                    stopPlane.transform.position = startPoint.transform.position;
+                    // stopping plane method - inactive
+                    //stopPlane.transform.position = startPoint.transform.position;
                 }
             }
 
@@ -273,8 +289,9 @@ public class MagicHandControl : MonoBehaviour
             debugText.GetComponent<TextMesh>().text = string.Join(",", orderInUse.Select(x => x.ToString())) + " , Index: " +  currentOrderIndex.ToString();
 
             prevExperimentStage = experimentStage;
-            prevExperimentStart = experimentStart;
         }
+
+        prevExperimentStart = experimentStart;
 
         // fetch the gesture detection flag from hand model
         current_gestureDetection = (VRHand.GetComponent<VRHandControl>().gestureDetection | VRHand.GetComponent<VRHandControl>().rotationGesture);
@@ -295,11 +312,8 @@ public class MagicHandControl : MonoBehaviour
                     Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
                 }
 
-                if (current_gestureDetection == false & prev_gestureDetection == true)
-                {
-                    //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
-                    (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphereParent.transform);
-                }
+                (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphereParent.transform);
+                
                 break;
             case 1: // extended hand control
                 ArmRender.enable = true;
@@ -314,11 +328,8 @@ public class MagicHandControl : MonoBehaviour
                     Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
                 }
 
-                if (current_gestureDetection == false & prev_gestureDetection == true)
-                {
-                    //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(VRHandTwin.transform, VRHand.transform, sphere.transform);
-                    (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphereParent.transform);
-                }
+                (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphereParent.transform);
+                
                 break;
             case 2: // portal control
                 ArmRender.enable = false;
@@ -369,37 +380,27 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
 
-
-            //if (warningArea.bounds.Contains(sphereParent.transform.GetChild(0).position) & unityClient.homePosition)
+            // older method disabled
+            //if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
+            //Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
+            //!warningArea.gameObject.GetComponent<MeshRenderer>().enabled &
+            //unityClient.startCalibration == false &
+            //prev_gestureDetection == true & 
+            //current_gestureDetection == false
+            //)
             //{
-            //    warningArea.gameObject.GetComponent<MeshRenderer>().enabled = true;
+            //    sliderReference.transform.position = closestDataPoint.transform.position;
+
+            //    Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
+
+            //    unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 0);
+
+            //    prevCloesetVector = closestDataPoint.transform.position;
             //}
-            //else
-            //{
-            //    warningArea.gameObject.GetComponent<MeshRenderer>().enabled = false;
-            //}
-
-            if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
-            Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
-            !warningArea.gameObject.GetComponent<MeshRenderer>().enabled &
-            unityClient.startCalibration == false &
-            prev_gestureDetection == true & 
-            current_gestureDetection == false
-            )
-            {
-                sliderReference.transform.position = closestDataPoint.transform.position;
-
-                //unityClient.initialPos();
-                Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
-
-                unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 0);
-
-                prevCloesetVector = closestDataPoint.transform.position;
-            }
-            //else if(prev_gestureDetection == false & current_gestureDetection == true)
-            //{
-            //    unityClient.initialPos();
-            //}
+            ////else if(prev_gestureDetection == false & current_gestureDetection == true)
+            ////{
+            ////    unityClient.initialPos();
+            ////}
 
             if (prev_gestureDetection == true & current_gestureDetection == false)
             {
@@ -444,21 +445,40 @@ public class MagicHandControl : MonoBehaviour
             startPointTouched = false;
             dataPointTouched = false;
         }
+
+        if (startFollowUp)
+        {
+            robotFollowUp();
+        }
+    }
+
+    private void printOrder()
+    {
+        foreach (int i in orderInUse)
+        {
+            print(i);
+        }
     }
 
     private void robotFollowUp()
     {
-        projectedPoint.transform.position = Vector3.ProjectOnPlane(VRHandTwinPlaceHolder.transform.position - p1, normal) + p1;
+        projectedPoint.transform.position = Vector3.ProjectOnPlane(closestDataPoint.transform.position - p1, normal) + p1;
 
         sliderReference.transform.position = projectedPoint.transform.position;
 
         Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
 
-        if (startFollowUp & skipFrameCounter > skipThreshold)
+        if (skipFrameCounter > skipThreshold & robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001)
         {
-            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 0, radius: 0.05f);
+            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f);
 
             skipFrameCounter = 0;
+            prevCloesetVector = closestDataPoint.transform.position;
+
+            // change the distance of the linear actuator
+            float distance = Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position);
+
+            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, scenario: 5, linearActuatorDistance: linearDistanceTest);
         }
 
         skipFrameCounter++;
@@ -510,7 +530,8 @@ public class MagicHandControl : MonoBehaviour
 
             newPoint1.transform.localPosition = newPoint2.transform.localPosition;
 
-            stopPlane.transform.position = currentDataPoint.transform.position;
+            // stopping plane method - inactive
+            //stopPlane.transform.position = currentDataPoint.transform.position;
 
             if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
             {
@@ -571,7 +592,8 @@ public class MagicHandControl : MonoBehaviour
 
                     newPoint1.transform.localPosition = newPoint2.transform.localPosition;
 
-                    stopPlane.transform.position = startPoint.transform.position;
+                    // stopping plane method - inactive
+                    //stopPlane.transform.position = startPoint.transform.position;
                 }
 
         }
@@ -582,37 +604,78 @@ public class MagicHandControl : MonoBehaviour
 
     private void setAnimationStartingPos()
     {
-        // Get the position of the GameObject
-        Vector3 currentPosition = cameraPoint.transform.position;
+        if (Scenario_No == 3)
+        {
+            // Get the position of the GameObject
+            Vector3 currentPosition = portal2PlaceHolder.transform.position;
 
-        // Update the keyframe at the specified frame index with the current position
-        Keyframe keyframeX = new Keyframe(clip_flying.frameRate * 0, currentPosition.x);
-        Keyframe keyframeY = new Keyframe(clip_flying.frameRate * 0, currentPosition.y);
-        Keyframe keyframeZ = new Keyframe(clip_flying.frameRate * 0, currentPosition.z);
+            // Update the keyframe at the specified frame index with the current position
+            Keyframe keyframeX = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.x);
+            Keyframe keyframeY = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.y);
+            Keyframe keyframeZ = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.z);
 
-        Keyframe keyframeX1 = new Keyframe(clip_flying.frameRate * 1 / 60, -0.793f);
-        Keyframe keyframeY1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.398f);
-        Keyframe keyframeZ1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.48f);
+            Keyframe keyframeX1 = new Keyframe(clip_flying_portal.frameRate * 1 / 60, 0.395f);
+            Keyframe keyframeY1 = new Keyframe(clip_flying_portal.frameRate * 1 / 60, 0.4315f);
+            Keyframe keyframeZ1 = new Keyframe(clip_flying_portal.frameRate * 1 / 60, -0.398f);
 
-        AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
-        AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
-        AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
+            AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
+            AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
+            AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
 
-        clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.x", curveX);
-        clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.y", curveY);
-        clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.z", curveZ);
+            clip_flying_portal.SetCurve(animationObjectPortal.name, typeof(Transform), "localPosition.x", curveX);
+            clip_flying_portal.SetCurve(animationObjectPortal.name, typeof(Transform), "localPosition.y", curveY);
+            clip_flying_portal.SetCurve(animationObjectPortal.name, typeof(Transform), "localPosition.z", curveZ);
+        }
+        else
+        {
+            // Get the position of the GameObject
+            Vector3 currentPosition = cameraPoint.transform.position;
+
+            // Update the keyframe at the specified frame index with the current position
+            Keyframe keyframeX = new Keyframe(clip_flying.frameRate * 0, currentPosition.x);
+            Keyframe keyframeY = new Keyframe(clip_flying.frameRate * 0, currentPosition.y);
+            Keyframe keyframeZ = new Keyframe(clip_flying.frameRate * 0, currentPosition.z);
+
+            Keyframe keyframeX1 = new Keyframe(clip_flying.frameRate * 1 / 60, -0.793f);
+            Keyframe keyframeY1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.398f);
+            Keyframe keyframeZ1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.48f);
+
+            AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
+            AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
+            AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
+
+            clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.x", curveX);
+            clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.y", curveY);
+            clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.z", curveZ);
+        }
     }
 
     private void startAnimation()
     {
-        animator.SetTrigger("start flying");
-        animator.ResetTrigger("reset");
+        if (Scenario_No == 3)
+        {
+            animatorPortal.SetTrigger("start flying");
+            animatorPortal.ResetTrigger("reset");
+        }
+        else
+        {
+            animator.SetTrigger("start flying");
+            animator.ResetTrigger("reset");
+        }
     }
 
     private void resetAnimation()
     {
-        animator.SetTrigger("reset");
-        animator.ResetTrigger("start flying");
+        if (Scenario_No == 3)
+        {
+            animatorPortal.SetTrigger("reset");
+            animatorPortal.ResetTrigger("start flying");
+        }
+        else
+        {
+            animator.SetTrigger("reset");
+            animator.ResetTrigger("start flying");
+        }
     }
 
     private void rearrangeOrder()
@@ -678,6 +741,8 @@ public class MagicHandControl : MonoBehaviour
 
     private void readExperimentOrder() // read pre-defined order based on the participant number
     {
+        orderList = new List<int>();
+
         string file = "Assets/RawData/Experiment_Order.csv";
 
         StreamReader reader = new StreamReader(file);
