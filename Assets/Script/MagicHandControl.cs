@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Linq;
+using TMPro;
 
 public class MagicHandControl : MonoBehaviour
 {
@@ -70,6 +71,9 @@ public class MagicHandControl : MonoBehaviour
     private bool prevExperimentStart = false;
     private List<int> trainingOrder = new List<int>();
     private List<int> orderList = new List<int>();
+    private List<int> orderNo1 = new List<int>();
+    private List<int> orderNo2 = new List<int>();
+    private List<int> orderNo3 = new List<int>();
     private List<int> orderInUse = new List<int>();
     private int currentOrderIndex = -1;
     private List<float> timeList = new List<float>();
@@ -123,6 +127,7 @@ public class MagicHandControl : MonoBehaviour
     private int maxLinearActuatorDistance = 1;
 
     public bool printOrderFlag = false;
+    public TextMeshPro titleDisplay;
 
     IEnumerator delayStart()
     {
@@ -130,14 +135,14 @@ public class MagicHandControl : MonoBehaviour
         {
             if (startAnimationFlag)
             {
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0.1f);
 
                 startAnimation();
 
                 startAnimationFlag = false;
             }
 
-            yield return new WaitForSeconds(0.7f);
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
@@ -158,10 +163,12 @@ public class MagicHandControl : MonoBehaviour
         trainingOrder.Add(100);
         trainingOrder.Add(239);
         trainingOrder.Add(427);
-        trainingOrder.Add(311);
-        trainingOrder.Add(86);
+        //trainingOrder.Add(311);
+        //trainingOrder.Add(86);
 
         rotationReference = Camera.transform.rotation;
+
+        startPoint.SetActive(false);
 
         StartCoroutine(delayStart());
     }
@@ -220,14 +227,20 @@ public class MagicHandControl : MonoBehaviour
                 case 1:
                     controlMethod = Options.MagicHand;
                     VR_Hand_Control.methodSwitch = HandControl.Sphere;
+
+                    orderInUse = orderNo1;
                     break;
                 case 2:
                     controlMethod = Options.ExtendedHand;
                     VR_Hand_Control.methodSwitch = HandControl.Sphere;
+
+                    orderInUse = orderNo2;
                     break;
                 case 3:
                     controlMethod = Options.Portal;
                     VR_Hand_Control.methodSwitch = HandControl.Portal;
+
+                    orderInUse = orderNo3;
                     break;
                 default:
                     break;
@@ -236,6 +249,7 @@ public class MagicHandControl : MonoBehaviour
             switch (experimentStage)
             {
                 case 0: // training stage
+                    titleDisplay.text = "Training" + " " + currentOrderIndex.ToString();
                     orderInUse = trainingOrder;
 
                     timeList = new List<float>();
@@ -243,7 +257,7 @@ public class MagicHandControl : MonoBehaviour
                     trajectoryDict = new Dictionary<int, List<Vector3>>();
                     break;
                 case 1: // in progress stage
-                    orderInUse = orderList;
+                    titleDisplay.text = "User Study" + " " + currentOrderIndex.ToString();
 
                     if (!startPoint.activeSelf)
                     {
@@ -251,13 +265,17 @@ public class MagicHandControl : MonoBehaviour
                     }
                     break;
                 case 2: // finished
-                    saveExperimentResult();
+                    titleDisplay.text = "Finished";
 
-                    saveHandMovement();
+                    if (prevExperimentStage != 2)
+                    {
+                        saveExperimentResult();
+
+                        saveHandMovement();
+                    }
+                    
                     // show finished indication
                     finishText.SetActive(true);
-
-                    experimentStart = false;
                     break;
                 default: // do nothing
                     break;
@@ -267,7 +285,7 @@ public class MagicHandControl : MonoBehaviour
             {
                 currentOrderIndex = 0;
 
-                if (experimentStage == 1 | experimentStage == 0)
+                if ((experimentStage == 1 | experimentStage == 0) & !startPoint.activeSelf)
                 {
                     startPoint.SetActive(true);
 
@@ -284,11 +302,11 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
 
+            prevExperimentStage = experimentStage;
+
             afterHandCollision();
 
             debugText.GetComponent<TextMesh>().text = string.Join(",", orderInUse.Select(x => x.ToString())) + " , Index: " +  currentOrderIndex.ToString();
-
-            prevExperimentStage = experimentStage;
         }
 
         prevExperimentStart = experimentStart;
@@ -468,6 +486,8 @@ public class MagicHandControl : MonoBehaviour
 
         Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
 
+        print(skipFrameCounter + " " + robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) + " " + Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position));
+
         if (skipFrameCounter > skipThreshold & robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001)
         {
             unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f);
@@ -543,24 +563,46 @@ public class MagicHandControl : MonoBehaviour
         }
         else if(dataPointTouched & !prevDataPointTouched)
         {
-                // stop timer here
-                if (experimentStage == 1)
-                {
-                    timeList.Add(Time.time - timeStamp);
-                }
+            // stop timer here
+            if (experimentStage == 1)
+            {
+                timeList.Add(Time.time - timeStamp);
+            }
 
-                currentDataPoint.GetComponent<SphereCollider>().enabled = false;
+            currentDataPoint.GetComponent<SphereCollider>().enabled = false;
 
-                // remove the outline effect by deleting the second render material
-                if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
-                {
-                    // Remove the second material from the materials array
-                    Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
-                    Array.Resize(ref materials, 1);
-                    currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
-                }
+            // remove the outline effect by deleting the second render material
+            if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
+            {
+                // Remove the second material from the materials array
+                Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+                Array.Resize(ref materials, 1);
+                currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+            }
 
-                if (currentOrderIndex + 1 >= orderInUse.Count)
+            startPoint.SetActive(true);
+
+            foreach (Transform g in sphereParentTwin.transform)
+            {
+                GameObject.Destroy(g.gameObject);
+            }
+
+            foreach (Transform g in sphereParent.transform)
+            {
+                GameObject.Destroy(g.gameObject);
+            }
+
+            GameObject newPoint1 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
+            newPoint1.transform.SetParent(sphereParentTwin.transform);
+            newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+
+            GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
+            newPoint2.transform.SetParent(sphereParent.transform);
+            newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+
+            newPoint1.transform.localPosition = newPoint2.transform.localPosition;
+
+            if (currentOrderIndex + 1 >= orderInUse.Count)
                 {
                     experimentStage += 1;
 
@@ -569,28 +611,6 @@ public class MagicHandControl : MonoBehaviour
                 else
                 {
                     currentOrderIndex += 1;
-
-                    startPoint.SetActive(true);
-
-                    foreach (Transform g in sphereParentTwin.transform)
-                    {
-                        GameObject.Destroy(g.gameObject);
-                    }
-
-                    foreach (Transform g in sphereParent.transform)
-                    {
-                        GameObject.Destroy(g.gameObject);
-                    }
-
-                    GameObject newPoint1 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-                    newPoint1.transform.SetParent(sphereParentTwin.transform);
-                    newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
-
-                    GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-                    newPoint2.transform.SetParent(sphereParent.transform);
-                    newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-
-                    newPoint1.transform.localPosition = newPoint2.transform.localPosition;
 
                     // stopping plane method - inactive
                     //stopPlane.transform.position = startPoint.transform.position;
@@ -607,7 +627,7 @@ public class MagicHandControl : MonoBehaviour
         if (Scenario_No == 3)
         {
             // Get the position of the GameObject
-            Vector3 currentPosition = portal2PlaceHolder.transform.position;
+            Vector3 currentPosition = portal2PlaceHolder.transform.parent.parent.localPosition;
 
             // Update the keyframe at the specified frame index with the current position
             Keyframe keyframeX = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.x);
@@ -622,9 +642,9 @@ public class MagicHandControl : MonoBehaviour
             AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
             AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
 
-            clip_flying_portal.SetCurve(animationObjectPortal.name, typeof(Transform), "localPosition.x", curveX);
-            clip_flying_portal.SetCurve(animationObjectPortal.name, typeof(Transform), "localPosition.y", curveY);
-            clip_flying_portal.SetCurve(animationObjectPortal.name, typeof(Transform), "localPosition.z", curveZ);
+            clip_flying_portal.SetCurve(animationObjectPortal.transform.parent.name + "/" + animationObjectPortal.name, typeof(Transform), "localPosition.x", curveX);
+            clip_flying_portal.SetCurve(animationObjectPortal.transform.parent.name + "/" + animationObjectPortal.name, typeof(Transform), "localPosition.y", curveY);
+            clip_flying_portal.SetCurve(animationObjectPortal.transform.parent.name + "/" + animationObjectPortal.name, typeof(Transform), "localPosition.z", curveZ);
         }
         else
         {
@@ -699,6 +719,10 @@ public class MagicHandControl : MonoBehaviour
         orderList.RemoveRange(0, skipSize);
 
         orderList.AddRange(firstValues);
+
+        orderNo1.AddRange(orderList.Take(10).ToList());
+        orderNo2.AddRange(orderList.Skip(10).Take(10).ToList());
+        orderNo3.AddRange(orderList.Skip(20).Take(10).ToList());
     }
 
     public static (Vector3 targetPos,Quaternion targetRot) getTargetPosRot(Transform T_from, Transform T_to, Transform source)

@@ -81,6 +81,8 @@ public class VRHandControl : MonoBehaviour
 
     public UnityClient unity_client;
     public GameObject stopPlane;
+    public bool resetPosFlag = false;
+    public GameObject grappingDetectionArea;
 
     private void Start()
     {
@@ -118,34 +120,34 @@ public class VRHandControl : MonoBehaviour
             DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
             VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
 
-            // raycast renderring
-            directionVector = frontSensor.transform.position - backSensor.transform.position;
-            ray = new Ray(backSensor.transform.position, directionVector.normalized);
+            //// raycast renderring
+            //directionVector = frontSensor.transform.position - backSensor.transform.position;
+            //ray = new Ray(backSensor.transform.position, directionVector.normalized);
 
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
-            {
-                Material m = lineRenderer.material;
+            //if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
+            //{
+            //    Material m = lineRenderer.material;
 
-                if (rotationGesture | gestureDetection) // render for either translation or the first time in rotation gesture
-                {
-                    lineRenderer.positionCount = 2;
-                    lineRenderer.SetPosition(0, ray.origin);
-                    lineRenderer.SetPosition(1, selectedPortal.transform.position);
-                }
+            //    if (rotationGesture | gestureDetection) // render for either translation or the first time in rotation gesture
+            //    {
+            //        lineRenderer.positionCount = 2;
+            //        lineRenderer.SetPosition(0, ray.origin);
+            //        lineRenderer.SetPosition(1, selectedPortal.transform.position);
+            //    }
 
-                if (gestureDetection)
-                {
-                    m.color = Color.red;
-                }
-                else if (rotationGesture)
-                {
-                    m.color = Color.blue;
-                }
-            }
-            else
-            {
-                lineRenderer.positionCount = 0;
-            }
+            //    if (gestureDetection)
+            //    {
+            //        m.color = Color.red;
+            //    }
+            //    else if (rotationGesture)
+            //    {
+            //        m.color = Color.blue;
+            //    }
+            //}
+            //else
+            //{
+            //    lineRenderer.positionCount = 0;
+            //}
 
             sphereDirecting();
 
@@ -211,9 +213,11 @@ public class VRHandControl : MonoBehaviour
                 break;
         }
 
-        if (prevScenario != (int)methodSwitch)
+        if (prevScenario != (int)methodSwitch | resetPosFlag)
         {
             resetConfig();
+
+            resetPosFlag = false;
         }
 
         //if ()
@@ -277,7 +281,7 @@ public class VRHandControl : MonoBehaviour
                 targetAreaCollider.gameObject.SetActive(false);
             }
 
-            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(this.transform.position))
+            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(this.transform.position) | gestureDetection)
             {
                 if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
                         Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
@@ -381,6 +385,8 @@ public class VRHandControl : MonoBehaviour
     {
         if (gestureDetection)
         {
+            grappingDetectionArea.SetActive(false);
+
             directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = false;
             DSC.posSyc = false;
 
@@ -404,6 +410,8 @@ public class VRHandControl : MonoBehaviour
         }
         else
         {
+            grappingDetectionArea.SetActive(true);
+
             directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = true;
             DSC.posSyc = true;
         }
