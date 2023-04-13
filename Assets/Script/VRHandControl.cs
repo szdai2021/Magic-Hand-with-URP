@@ -302,10 +302,10 @@ public class VRHandControl : MonoBehaviour
                         grapTarget.SetActive(false);
                         grapTargetOnHand.SetActive(true);
 
-                        if (fixedPosDetectionMode & !unity_client.homePosition)
-                        {
-                            unity_client.initialPos();
-                        }
+                        //if (fixedPosDetectionMode & !unity_client.homePosition)
+                        //{
+                        //    unity_client.initialPos();
+                        //}
                     }
                 }
                 else

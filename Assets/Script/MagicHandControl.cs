@@ -124,7 +124,7 @@ public class MagicHandControl : MonoBehaviour
     public int linearDistanceTest = 0;
 
     private int skipFrameCounter;
-    private int maxLinearActuatorDistance = 1;
+    //private int maxLinearActuatorDistance = 1;
 
     public bool printOrderFlag = false;
     public TextMeshPro titleDisplay;
@@ -321,6 +321,7 @@ public class MagicHandControl : MonoBehaviour
 
                 setObjectActive(portalRelevant, false);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
 
                 cameraParent.SetActive(true);
                 Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
@@ -338,6 +339,7 @@ public class MagicHandControl : MonoBehaviour
 
                 setObjectActive(portalRelevant, false);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
 
                 cameraParent.SetActive(true);
                 Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
@@ -488,17 +490,17 @@ public class MagicHandControl : MonoBehaviour
 
         print(skipFrameCounter + " " + robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) + " " + Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position));
 
-        if (skipFrameCounter > skipThreshold & robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001)
+        if (skipFrameCounter > skipThreshold & robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & current_gestureDetection)
         {
-            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f);
+            // change the distance of the linear actuator
+            float distance = Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position);
+
+            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: 100);
 
             skipFrameCounter = 0;
             prevCloesetVector = closestDataPoint.transform.position;
 
-            // change the distance of the linear actuator
-            float distance = Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position);
-
-            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, scenario: 5, linearActuatorDistance: linearDistanceTest);
+            // unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, scenario: 5, linearActuatorDistance: linearDistanceTest);
         }
 
         skipFrameCounter++;
@@ -821,7 +823,7 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
         sw.WriteLine(" ");
 
-        sw.WriteLine("Index No.     Position.x      Position.y      Position.z");
+        sw.WriteLine("Index_No.     Position.x      Position.y      Position.z");
         foreach (int index in trajectoryDict.Keys)
         {
             foreach (Vector3 pos in trajectoryDict[index])
