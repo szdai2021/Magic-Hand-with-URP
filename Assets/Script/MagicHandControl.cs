@@ -112,9 +112,11 @@ public class MagicHandControl : MonoBehaviour
     private bool startAnimationFlag = false;
 
     public GameObject projectedPoint;
+    private int projectionPlaneIndex = 1;
 
     private Vector3 p1, p2;
     private Vector3 normal;
+    public Vector3 pointOnPlane;
     private GameObject trackedEndEffector;
 
     public Collider robotRangeEndEffector;
@@ -128,6 +130,12 @@ public class MagicHandControl : MonoBehaviour
 
     public bool printOrderFlag = false;
     public TextMeshPro titleDisplay;
+
+    public GameObject far, close;
+
+    public bool test = true;
+
+    private float FarDistance, CloseDistance;
 
     IEnumerator delayStart()
     {
@@ -152,6 +160,11 @@ public class MagicHandControl : MonoBehaviour
         p2 = planeNormalParent.transform.GetChild(1).position;
 
         normal = (p2 - p1).normalized;
+
+        FarDistance = Mathf.Abs(Vector3.Dot(normal, p1 - far.transform.position));
+        CloseDistance = Mathf.Abs(Vector3.Dot(normal, p1 - close.transform.position));
+
+        pointOnPlane = p1;
 
         trackedEndEffector = PPR.TCP_Center_Tracked;
 
@@ -438,6 +451,15 @@ public class MagicHandControl : MonoBehaviour
         prev_gestureDetection = current_gestureDetection;
         lastFrameHandRotation = DW2_PlaceHolder.transform.rotation;
 
+        if (Vector3.Distance(sphereParent.transform.GetChild(0).position, VRHandTwin.transform.position) < 0.15 & current_gestureDetection == false)
+        {
+            VR_Hand_Control.posDetectionLock = true;
+        }
+        else
+        {
+            VR_Hand_Control.posDetectionLock = false;
+        }
+
         if (touchDetection.bounds.Contains(sphereParent.transform.GetChild(0).position))
         {
             touchFrameCounter += 1;
@@ -482,20 +504,58 @@ public class MagicHandControl : MonoBehaviour
 
     private void robotFollowUp()
     {
-        projectedPoint.transform.position = Vector3.ProjectOnPlane(closestDataPoint.transform.position - p1, normal) + p1;
+        projectionPlaneIndex = Mathf.CeilToInt(Mathf.Abs(Vector3.Dot(normal, p1 - closestDataPoint.transform.position)) / (FarDistance - CloseDistance));
+
+        if (projectionPlaneIndex > 2)
+        {
+            projectionPlaneIndex = 2;
+        }
+
+        if (projectionPlaneIndex < 1)
+        {
+            projectionPlaneIndex = 1;
+        }
+
+        pointOnPlane = p1 + normal * (FarDistance - CloseDistance)*(projectionPlaneIndex-1);
+
+        projectedPoint.transform.position = Vector3.ProjectOnPlane(closestDataPoint.transform.position - pointOnPlane, normal) + pointOnPlane;
 
         sliderReference.transform.position = projectedPoint.transform.position;
 
         Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
 
-        print(skipFrameCounter + " " + robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) + " " + Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position));
+        // print(skipFrameCounter + " " + robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) + " " + Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position));
 
         if (skipFrameCounter > skipThreshold & robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & current_gestureDetection)
         {
-            // change the distance of the linear actuator
-            float distance = Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position);
+            if (test)
+            {
+                // change the distance of the linear actuator
+                float distance = Mathf.Abs(Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position));
 
-            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: 100);
+                print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
+
+                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
+
+                //if (distance > FarDistance)
+                //{
+                //    projectionPlaneIndex += 1;
+                //}
+
+                //if (distance < CloseDistance)
+                //{
+                //    projectionPlaneIndex -= 1;
+                //}
+
+            }
+            else
+            {
+                pointOnPlane = p1;
+
+                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: 0);
+
+            }
+
 
             skipFrameCounter = 0;
             prevCloesetVector = closestDataPoint.transform.position;

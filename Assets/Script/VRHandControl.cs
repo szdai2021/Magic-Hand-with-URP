@@ -206,8 +206,6 @@ public class VRHandControl : MonoBehaviour
                 }
                 sphereDirecting();
                 break;
-            case 3:
-                break;
             default:
                 centerDirecting();
                 break;
@@ -527,7 +525,6 @@ public class VRHandControl : MonoBehaviour
 
         prev_rotationGesture = rotationGesture;
     }
-
 }
 
 public enum HandControl
