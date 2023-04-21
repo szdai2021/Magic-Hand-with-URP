@@ -533,7 +533,7 @@ public class MagicHandControl : MonoBehaviour
                 // change the distance of the linear actuator
                 float distance = Mathf.Abs(Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position));
 
-                print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
+                // print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
 
                 unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
 

@@ -42,13 +42,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2 - 0.03f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2.75f - 0.03f);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2 - 0.03f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2.75f - 0.03f);
                     break;
                 case 1:
                     Vector3 elbowProjection = Vector3.Project(elbowVICON.transform.position - shoulderJoint.transform.position, (handJoint.transform.position - shoulderJoint.transform.position).normalized) + shoulderJoint.transform.position;
@@ -61,15 +61,15 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2 - 0.03f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2.75f - 0.03f);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2 - 0.03f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2.75f - 0.03f);
                     break;
-                case 2:
+                case 2: // to do
                     Vector3 VRHandActualDirection = (VRHand.transform.position - shoulderJoint.transform.position).normalized;
                     Vector3 VRHandVirtualDirection = (VRHandTwin.transform.position - shoulderJoint.transform.position).normalized;
 
@@ -88,13 +88,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2 - 0.03f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2.75f - 0.03f);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2 - 0.03f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2.75f - 0.03f);
                     break;
                 default:
                     break;

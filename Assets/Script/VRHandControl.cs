@@ -84,6 +84,13 @@ public class VRHandControl : MonoBehaviour
     public bool resetPosFlag = false;
     public GameObject grappingDetectionArea;
 
+    public Material arrowIndicatorSlow;
+    public Material arrowIndicatorMiddle;
+    public Material arrowIndicatorFast;
+
+    private float C_min = 11.448f;
+    private float C_max = 21;
+
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
@@ -207,7 +214,7 @@ public class VRHandControl : MonoBehaviour
                 sphereDirecting();
                 break;
             default:
-                centerDirecting();
+                
                 break;
         }
 
@@ -260,6 +267,9 @@ public class VRHandControl : MonoBehaviour
         rotationGestureCounter = 0;
         prev_rotationGesture = false;
         prev_DWC1_posSyc = true;
+
+        VRHandTwinPosOffset_Local = Vector3.zero;
+        VRHandTwinRotOffset = Quaternion.identity;
 
         VRHandTwin.transform.position = this.transform.position;
         VRHandTwin.transform.rotation = this.transform.rotation;
@@ -394,9 +404,24 @@ public class VRHandControl : MonoBehaviour
             directionOrientation.transform.localPosition = palmCenter.transform.position - directionSphere.transform.position;
             directionArrow.transform.LookAt(directionOrientation.transform);
 
+            if (d <= C_min / 2)
+            {
+                changeAllChildrenMAterial(directionArrow.transform, arrowIndicatorSlow);
+            }
+            else if (d > C_min / 2 & d <= C_max)
+            {
+                changeAllChildrenMAterial(directionArrow.transform, arrowIndicatorMiddle);
+            }
+            else
+            {
+                changeAllChildrenMAterial(directionArrow.transform, arrowIndicatorFast);
+            }
+
             Vector3 stepChange = directionOrientation.transform.localPosition.normalized / 100 * d / 15;
 
-            stepChange *= sigmoidCurveFactor(Vector3.Distance(VRHandTwin.transform.position, this.transform.position));
+            //stepChange *= sigmoidCurveFactor(Vector3.Distance(VRHandTwin.transform.position, this.transform.position));
+
+            stepChange *= (float)logisticFunction(d);
 
             // stopping plane method - inactive
             //if (!stopPlane.transform.GetChild(2).GetComponent<BoxCollider>().bounds.Contains(VRHandTwin.transform.position))
@@ -415,6 +440,14 @@ public class VRHandControl : MonoBehaviour
         }
     }
 
+    private void changeAllChildrenMAterial(Transform parent, Material m)
+    {
+        foreach (Transform t in parent)
+        {
+            t.gameObject.GetComponent<MeshRenderer>().material = m;
+        }
+    }
+
     private float sigmoidCurveFactor(float magnitude)
     {
         float d = 5f;
@@ -430,6 +463,28 @@ public class VRHandControl : MonoBehaviour
         ratio = f2 / f1;
 
         return ratio;
+    }
+
+    private double logisticFunction(float magnitude)
+    {
+        if (magnitude*2 <= C_min)
+        {
+            return 1;
+        }
+        else
+        {
+            double ratio;
+            float a = 50f;
+            float b = -0.2f;
+            float c = 0.6f;
+            float d = 14.8f;
+
+            float y = (a - b) / (1 + Mathf.Exp(-c * (magnitude * 2 - d))) + b;
+
+            ratio = 2 * y / ((magnitude * 2));
+
+            return ratio;
+        }
     }
 
     private void centerDirecting()
@@ -532,5 +587,6 @@ public enum HandControl
     Thumb,
     Center,
     Sphere,
-    Portal
+    Portal,
+    None
 } 
