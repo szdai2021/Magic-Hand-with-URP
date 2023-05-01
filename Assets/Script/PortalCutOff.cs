@@ -57,11 +57,14 @@ public class PortalCutOff : MonoBehaviour
 
                 portalHandPosControl();
 
-                GameObject.FindGameObjectsWithTag("Ray")[0].GetComponent<MeshRenderer>().enabled = false;
+                //GameObject.FindGameObjectsWithTag("Ray")[0].GetComponent<MeshRenderer>().enabled = false;
             }
             else
             {
-                GameObject.FindGameObjectsWithTag("Ray")[0].GetComponent<MeshRenderer>().enabled = true;
+                VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
+
+                //GameObject.FindGameObjectsWithTag("Ray")[0].GetComponent<MeshRenderer>().enabled = true;
             }
         }
     }

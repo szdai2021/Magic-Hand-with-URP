@@ -52,7 +52,8 @@ public class MagicHandControl : MonoBehaviour
     private GameObject closestDataPoint;
     private Vector3 prevCloesetVector = Vector3.zero;
 
-    public VRHandControl VR_Hand_Control;
+    //public VRHandControl VR_Hand_Control;
+    public VRHandControlGoGo VR_Hand_Control;
 
     public GameObject scatterParent;
     public GameObject startPoint;
@@ -133,9 +134,13 @@ public class MagicHandControl : MonoBehaviour
 
     public GameObject far, close;
 
-    public bool test = true;
+    public Collider resetPosCollider;
 
     private float FarDistance, CloseDistance;
+
+    private bool resetFlagStage1 = false;
+
+    public bool resetTest = false;
 
     IEnumerator delayStart()
     {
@@ -194,35 +199,6 @@ public class MagicHandControl : MonoBehaviour
             printOrder();
             printOrderFlag = false;
         }
-
-        //// define the activated scatter slice layer and create data point in the sphere parent
-        //if (sphereParent.transform.childCount > 0)
-        //{
-        //    foreach (Transform child in sphereParent.transform)
-        //    {
-        //        GameObject.Destroy(child.gameObject);
-        //    }
-        //}
-
-        //if (sphereParentTwin.transform.childCount > 0)
-        //{
-        //    foreach (Transform child in sphereParentTwin.transform)
-        //    {
-        //        GameObject.Destroy(child.gameObject);
-        //    }
-        //}
-
-        //// create each data point in activate layer
-        //foreach (GameObject g in SSBM.selectedDataPoints)
-        //{
-        //    GameObject newPoint1 = Instantiate(dataPoint, g.transform.position, Quaternion.identity);
-        //    newPoint1.transform.SetParent(sphereParent.transform);
-        //    newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
-
-        //    GameObject newPoint2 = Instantiate(dataPoint, g.transform.position, Quaternion.identity);
-        //    newPoint2.transform.SetParent(sphereParentTwin.transform);
-        //    newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-        //}
 
         if (experimentStart)
         {
@@ -413,28 +389,6 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
 
-            // older method disabled
-            //if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
-            //Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
-            //!warningArea.gameObject.GetComponent<MeshRenderer>().enabled &
-            //unityClient.startCalibration == false &
-            //prev_gestureDetection == true & 
-            //current_gestureDetection == false
-            //)
-            //{
-            //    sliderReference.transform.position = closestDataPoint.transform.position;
-
-            //    Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
-
-            //    unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 0);
-
-            //    prevCloesetVector = closestDataPoint.transform.position;
-            //}
-            ////else if(prev_gestureDetection == false & current_gestureDetection == true)
-            ////{
-            ////    unityClient.initialPos();
-            ////}
-
             if (prev_gestureDetection == true & current_gestureDetection == false)
             {
                 setAnimationStartingPos();
@@ -492,6 +446,34 @@ public class MagicHandControl : MonoBehaviour
         {
             robotFollowUp();
         }
+
+        if (resetTest)
+        {
+            // reset robot position when the gesture is detected after each collision 
+            resetRobotPosInExperiment();
+        }
+        
+        if (resetPosCollider.bounds.Contains(VRHand.transform.position))
+        {
+            VR_Hand_Control.resetConfig();
+        }
+    }
+
+    private void resetRobotPosInExperiment()
+    {
+        if (!startPointTouched & prevStartPointTouched)
+        {
+            resetFlagStage1 = true;
+        }
+
+        if (resetFlagStage1)
+        {
+            if (current_gestureDetection & !unityClient.homePosition)
+            {
+                unityClient.initialPos();
+                resetFlagStage1 = false;
+            }
+        }
     }
 
     private void printOrder()
@@ -524,43 +506,30 @@ public class MagicHandControl : MonoBehaviour
 
         Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
 
-        // print(skipFrameCounter + " " + robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) + " " + Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position));
-
         if (skipFrameCounter > skipThreshold & robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & current_gestureDetection)
         {
-            if (test)
-            {
-                // change the distance of the linear actuator
-                float distance = Mathf.Abs(Vector3.Dot(normal, projectedPoint.transform.position - closestDataPoint.transform.position));
+            // change the distance of the linear actuator
+            float distance = Mathf.Abs(Vector3.Dot(normal, pointOnPlane - closestDataPoint.transform.position));
+                
+            print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5 + " " + projectionPlaneIndex);
 
-                // print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
-
-                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
-
-                //if (distance > FarDistance)
-                //{
-                //    projectionPlaneIndex += 1;
-                //}
-
-                //if (distance < CloseDistance)
-                //{
-                //    projectionPlaneIndex -= 1;
-                //}
-
-            }
-            else
-            {
-                pointOnPlane = p1;
-
-                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: 0);
-
-            }
-
+            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
 
             skipFrameCounter = 0;
             prevCloesetVector = closestDataPoint.transform.position;
 
             // unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, scenario: 5, linearActuatorDistance: linearDistanceTest);
+        }
+        
+        if(!robotRangeEndEffector.bounds.Contains(robotEndEffector.transform.position) & current_gestureDetection)
+        {
+            if (resetFlagStage1)
+            {
+                if (!unityClient.homePosition)
+                {
+                    unityClient.initialPos();
+                }
+            }
         }
 
         skipFrameCounter++;

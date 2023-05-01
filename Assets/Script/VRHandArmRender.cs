@@ -31,8 +31,6 @@ public class VRHandArmRender : MonoBehaviour
             cylinder1.SetActive(true);
             cylinder2.SetActive(true);
 
-            
-
             switch ((int)methodSwitch)
             {
                 case 0:
@@ -99,7 +97,6 @@ public class VRHandArmRender : MonoBehaviour
                 default:
                     break;
             }
-            
         }
         else
         {

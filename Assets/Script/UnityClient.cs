@@ -45,11 +45,11 @@ public class UnityClient : MonoBehaviour
 
     public bool homePosition = false;
     public float linearVoltageMax = 5;
+    public float safeDistanceFor330ms = 0.075f;
 
     void Start()
     {
         client = new TcpClient(host_ip, host_port);
-        //Debug.Log("Connected to relay server");
 
         stream = client.GetStream();
         inChannel = new StreamReader(client.GetStream());
@@ -191,7 +191,7 @@ public class UnityClient : MonoBehaviour
         double angle1 = 0, double angle2 = 0, double angle3 = 0, double angle4 = 0, double angle5 = 0, double angle6 = 0,
         int movementType = 0, double extra1 = 0, double extra2 = 0, double extra3 = 0, double radius = 0, int interruptible = 1, float linearActuatorDistance = 2.5f) 
         // movementType 0: jointspace linear;
-        // Type 1: toolspace linear;
+        // Type 1: servoj; a = time to finish the action (0.33)
         // Type 2: circular;
         // Type 3: jointspace linear by joint pos;
         // Type 4: speedl;
@@ -203,7 +203,12 @@ public class UnityClient : MonoBehaviour
         }
         else if (linearActuatorDistance < 0)
         {
-            linearActuatorDistance = 2.5f;
+            linearActuatorDistance = 0f;
+        }
+
+        if (movementType == 1)
+        {
+            acc = robotSafetyWatchDog(acc, xi, yi, zi);
         }
 
         string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible, linearActuatorDistance: linearActuatorDistance);
@@ -326,5 +331,18 @@ public class UnityClient : MonoBehaviour
     public void testRobotPin()
     {
         customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3, interruptible: 0, scenario: 5);
+    }
+
+    private double robotSafetyWatchDog(double a, double x, double y, double z) // check the acceleration of the action and slow the robot down when it's too high
+    {
+        float distance = Vector3.Distance(new Vector3((float)prev_x, (float)prev_y, (float)prev_z), new Vector3((float)x, (float)y, (float)z));
+        if (distance > safeDistanceFor330ms)
+        {
+            return a*(distance/safeDistanceFor330ms);
+        }
+        else
+        {
+            return a;
+        }
     }
 }

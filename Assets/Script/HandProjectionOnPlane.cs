@@ -35,6 +35,7 @@ namespace VRPortalToolkit
         public float v = 1f;
 
         public int moveType = 1;
+        public Collider robotRange;
 
         private void Start()
         {
@@ -59,7 +60,7 @@ namespace VRPortalToolkit
             Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
             Vector3 referencePos2 = unityClient.convertUnityCoord2RobotCoord(trackedEndEffector.transform.position);
 
-            if (startFollowUp & skipFrameCounter > skipThreshold)
+            if (startFollowUp & skipFrameCounter > skipThreshold & robotRange.bounds.Contains(robotEndEffector.transform.position))
             {
                 //float ax = referencePos1.x - referencePos2.x;
                 //float ay = referencePos1.y - referencePos2.y;

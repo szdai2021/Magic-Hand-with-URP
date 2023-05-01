@@ -91,6 +91,8 @@ public class VRHandControl : MonoBehaviour
     private float C_min = 11.448f;
     private float C_max = 21;
 
+    private Vector3 redirectionOffset = Vector3.zero;
+
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
@@ -101,7 +103,7 @@ public class VRHandControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local;
+        DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local + redirectionOffset;
         DWC2.transform.rotation = DWC1.transform.rotation * VRHandTwinRotOffset * TempRotationReference;
 
         if (((int)methodSwitch) == 3)
@@ -258,7 +260,7 @@ public class VRHandControl : MonoBehaviour
         prevScenario = (int)methodSwitch;
     }
 
-    private void resetConfig()
+    public void resetConfig()
     {
         positionReference = Vector3.zero;
         RotationReference = Quaternion.identity;
@@ -270,6 +272,7 @@ public class VRHandControl : MonoBehaviour
 
         VRHandTwinPosOffset_Local = Vector3.zero;
         VRHandTwinRotOffset = Quaternion.identity;
+        redirectionOffset = Vector3.zero;
 
         VRHandTwin.transform.position = this.transform.position;
         VRHandTwin.transform.rotation = this.transform.rotation;
