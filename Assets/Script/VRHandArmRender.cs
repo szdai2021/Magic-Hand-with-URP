@@ -22,6 +22,8 @@ public class VRHandArmRender : MonoBehaviour
 
     private float d1, d2;
 
+    public float offset = 0.09f;
+
     // Update is called once per frame
     void Update()
     {
@@ -40,13 +42,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2.75f - 0.03f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f );
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2.75f - 0.03f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
                     break;
                 case 1:
                     Vector3 elbowProjection = Vector3.Project(elbowVICON.transform.position - shoulderJoint.transform.position, (handJoint.transform.position - shoulderJoint.transform.position).normalized) + shoulderJoint.transform.position;
@@ -59,40 +61,47 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2.75f - 0.03f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2.75f - 0.03f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
                     break;
-                case 2: // to do
-                    Vector3 VRHandActualDirection = (VRHand.transform.position - shoulderJoint.transform.position).normalized;
-                    Vector3 VRHandVirtualDirection = (VRHandTwin.transform.position - shoulderJoint.transform.position).normalized;
+                case 2: 
+                    // Calculate the direction from pointC to pointA
+                    Vector3 dirAC = handJoint.transform.position - shoulderJoint.transform.position;
 
-                    Quaternion desiredRotation = Quaternion.FromToRotation(VRHandActualDirection, VRHandVirtualDirection);
-                    Quaternion rotationDifference = Quaternion.FromToRotation(VRHandActualDirection, VRHandVirtualDirection);
-                    Quaternion inverseRotationDifference = Quaternion.Inverse(rotationDifference);
-                    Quaternion finalRotation = inverseRotationDifference * desiredRotation;
+                    // Calculate the distance from pointC to pointA
+                    float distAC = dirAC.magnitude;
 
-                    Vector3 shoulderToElbowDirection = (elbowVICON.transform.position - shoulderJoint.transform.position).normalized;
+                    // Calculate the direction from pointC to pointB
+                    float angle = Vector3.Angle(-shoulderJoint.transform.position + elbowVICON.transform.position, VRHand.transform.position - elbowVICON.transform.position);
+                    Vector3 dirCB = elbowVICON.transform.position - shoulderJoint.transform.position;
+                    dirCB = Quaternion.AngleAxis(angle, dirCB) * -dirCB; // to do
 
-                    float ratio = Vector3.Distance(VRHandTwin.transform.position, shoulderJoint.transform.position) / Vector3.Distance(VRHand.transform.position, shoulderJoint.transform.position);
+                    // Calculate the distance from pointC to pointB using the length ratios
+                    float distAB = 0.5f * distAC;
+                    float distCB = distAC - distAB * 1;
 
-                    middleJiont.transform.position = shoulderJoint.transform.position + (finalRotation * shoulderToElbowDirection)*ratio;
+                    // Calculate the position of pointB based on the direction and distances
+                    Vector3 posB = shoulderJoint.transform.position + -dirCB.normalized * distCB;
+
+                    // Update the position of pointB
+                    middleJiont.transform.position = posB;
 
                     cylinder1.transform.position = shoulderJoint.transform.position;
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, d1 / 2.75f - 0.03f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, d2 / 2.75f - 0.03f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
                     break;
                 default:
                     break;

@@ -199,23 +199,27 @@ public class VRHandControlGoGo : MonoBehaviour
 
     private void gogoInteraction()
     {
-        float offset = Vector3.Distance(gogoCenter.transform.position, this.transform.position);
-        float range = Vector3.Distance(gogoPoint1.transform.position, gogoPoint2.transform.position);
-
-        Vector3 normal = Vector3.Normalize(this.transform.position - gogoCenter.transform.position);
-
-        if (offset < range * 0.35)
+        if (gestureDetection)
         {
-            VRHandTwinPosOffset_Local = gogoCenter.transform.position + offset * normal;
-        }
-        else if (offset >= range * 0.35)
-        {
-            double r = offset / range;
-            float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
+            float offset = Vector3.Distance(gogoCenter.transform.position, this.transform.position);
+            float range = Vector3.Distance(gogoPoint1.transform.position, gogoPoint2.transform.position);
 
-            VRHandTwinPosOffset_Local = gogoCenter.transform.position + (float)(range * 0.35) * normal + (offset - (float)(range * 0.35)) * normal * new_r;
+            Vector3 normal = Vector3.Normalize(this.transform.position - gogoCenter.transform.position);
+
+            if (offset < range * 0.35)
+            {
+                VRHandTwinPosOffset_Local = gogoCenter.transform.position + offset * normal;
+            }
+            else if (offset >= range * 0.35)
+            {
+                double r = offset / range;
+                float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
+
+                VRHandTwinPosOffset_Local = gogoCenter.transform.position + (float)(range * 0.35) * normal + (offset - (float)(range * 0.35)) * normal * new_r;
+            }
         }
     }
+
     public void resetConfig()
     {
         positionReference = Vector3.zero;
