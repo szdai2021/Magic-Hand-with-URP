@@ -70,7 +70,7 @@ namespace VRPortalToolkit
 
                 //unityClient.customMove(ax / norm, ay / norm, az / norm, -0.6, 1.47, 0.62, speed: 0.01, acc: 0.15f, movementType: 4); // strange speedl behaviour
 
-                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: moveType, interruptible: interruptible, radius: 0.05f);
+                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, acc: 330, movementType: moveType, interruptible: interruptible, radius: 0.05f);
 
                 skipFrameCounter = 0;
             }

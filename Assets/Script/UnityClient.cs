@@ -76,11 +76,11 @@ public class UnityClient : MonoBehaviour
             while (startCalibration)
             {
                 // send command to robot for the first movement and wait for 5 seconds
-                customMove(0.2f, 0.2f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 1, interruptible: 0);
+                customMove(0.2f, 0.2f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(1f);
-                customMove(0.2f, 0.2f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 1, interruptible: 0);
+                customMove(0.2f, 0.2f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(1f);
-                customMove(0.2f, 0.2f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 1, interruptible: 0);
+                customMove(0.2f, 0.2f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 

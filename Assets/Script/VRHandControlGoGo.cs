@@ -45,6 +45,7 @@ public class VRHandControlGoGo : MonoBehaviour
     [HideInInspector] public Vector3 VRHandTwinPosOffset_Public = new Vector3(0, 0, 0);
     [HideInInspector] public Quaternion VRHandTwinRotOffset = Quaternion.identity;
 
+    private bool prevGestureDetection = false;
     private Vector3 positionReference = Vector3.zero;
     private Quaternion RotationReference = Quaternion.identity;
     private Quaternion TempRotationReference = Quaternion.identity;
@@ -81,10 +82,12 @@ public class VRHandControlGoGo : MonoBehaviour
     private float C_min = 11.448f;
     private float C_max = 21;
 
-    private Vector3 redirectionOffset = Vector3.zero;
+    private Vector3 OffsetRAM = Vector3.zero;
 
     public GameObject gogoPoint1, gogoPoint2;
     public GameObject gogoCenter;
+
+    public bool gogoTestFlag = false;
 
     private void Start()
     {
@@ -96,7 +99,7 @@ public class VRHandControlGoGo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local + redirectionOffset;
+        DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local + OffsetRAM;
         DWC2.transform.rotation = DWC1.transform.rotation * VRHandTwinRotOffset * TempRotationReference;
 
         if (((int)methodSwitch) == 3)
@@ -106,8 +109,17 @@ public class VRHandControlGoGo : MonoBehaviour
             directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = selectedPortal;
             DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
             VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
-
-            gogoInteraction();
+            
+            if (gogoTestFlag)
+            {
+                gogoInteraction();
+            }
+            else
+            {
+                sphereGoGoInteraction();
+            }
+            //gogoInteraction();
+            //sphereGoGoInteraction();
 
             if (selectedPortal != null)
             {
@@ -150,7 +162,16 @@ public class VRHandControlGoGo : MonoBehaviour
             case 1:
                 break;
             case 2:
-                gogoInteraction();
+                if (gogoTestFlag)
+                {
+                    gogoInteraction();
+                }
+                else
+                {
+                    sphereGoGoInteraction();
+                }
+                //gogoInteraction();
+                //sphereGoGoInteraction();
                 break;
             default:
                 
@@ -163,11 +184,6 @@ public class VRHandControlGoGo : MonoBehaviour
 
             resetPosFlag = false;
         }
-
-        //if ()
-        //{
-
-        //}
 
         if (turnOnHandShadow)
         {
@@ -206,18 +222,68 @@ public class VRHandControlGoGo : MonoBehaviour
 
             Vector3 normal = Vector3.Normalize(this.transform.position - gogoCenter.transform.position);
 
-            if (offset < range * 0.35)
+            if (offset < range * 0.5)
             {
-                VRHandTwinPosOffset_Local = gogoCenter.transform.position + offset * normal;
+                VRHandTwinPosOffset_Local = offset * normal;
             }
-            else if (offset >= range * 0.35)
+            else if (offset >= range * 0.5)
             {
                 double r = offset / range;
                 float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
 
-                VRHandTwinPosOffset_Local = gogoCenter.transform.position + (float)(range * 0.35) * normal + (offset - (float)(range * 0.35)) * normal * new_r;
+                VRHandTwinPosOffset_Local = (float)(range * 0.5) * normal + (offset - (float)(range * 0.5)) * normal * new_r;
             }
         }
+    }
+
+    private void sphereGoGoInteraction()
+    {
+        if (gestureDetection)
+        {
+            grappingDetectionArea.SetActive(false);
+
+            directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = false;
+            DSC.posSyc = false;
+
+            // change the size of the direction arrow and the orientation
+            float d = DSC.magnitude;
+            directionArrow.transform.localScale = new Vector3(d / 12 * 3.5f, d / 12 * 3.5f, d / 12 * 7);
+            directionOrientation.transform.localPosition = palmCenter.transform.position - directionSphere.transform.position;
+            directionArrow.transform.LookAt(directionOrientation.transform);
+
+            Vector3 stepChange = directionOrientation.transform.localPosition.normalized / 100 * d / 15;
+
+            Vector3 normal = Vector3.Normalize(directionOrientation.transform.localPosition);
+
+            if (d < 12 * 0.35f)
+            {
+                VRHandTwinPosOffset_Local = d * normal/100;
+            }
+            else if (d >= 12 * 0.35f)
+            {
+                double r = d / 12;
+                float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
+
+                VRHandTwinPosOffset_Local = ((float)(12 * 0.35) * normal + (d - (float)(12 * 0.35)) * normal * new_r)/100;
+            }
+
+            //VRHandTwinPosOffset_Local = stepChange;
+        }
+        else
+        {
+            grappingDetectionArea.SetActive(true);
+
+            directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = true;
+            DSC.posSyc = true;
+        }
+
+        if (prevGestureDetection & !gestureDetection)
+        {
+            OffsetRAM += VRHandTwinPosOffset_Local;
+            VRHandTwinPosOffset_Local = Vector3.zero;
+        }
+
+        prevGestureDetection = gestureDetection;
     }
 
     public void resetConfig()
@@ -232,7 +298,7 @@ public class VRHandControlGoGo : MonoBehaviour
 
         VRHandTwinPosOffset_Local = Vector3.zero;
         VRHandTwinRotOffset = Quaternion.identity;
-        redirectionOffset = Vector3.zero;
+        OffsetRAM = Vector3.zero;
 
         VRHandTwin.transform.position = this.transform.position;
         VRHandTwin.transform.rotation = this.transform.rotation;
@@ -350,53 +416,6 @@ public class VRHandControlGoGo : MonoBehaviour
         }
 
         prev_DWC1_posSyc = DWC1.GetComponent<directionWheelControl>().posSyc;
-    }
-
-    private void changeAllChildrenMAterial(Transform parent, Material m)
-    {
-        foreach (Transform t in parent)
-        {
-            t.gameObject.GetComponent<MeshRenderer>().material = m;
-        }
-    }
-
-    private float sigmoidCurveFactor(float magnitude)
-    {
-        float d = 5f;
-        float ratio;
-
-        float f1 = magnitude;
-
-        float exp1 = Mathf.Exp(magnitude/d);
-        float exp2 = Mathf.Exp(-magnitude/d);
-
-        float f2 = d*(exp1 - exp2) / (exp1 + exp2);
-
-        ratio = f2 / f1;
-
-        return ratio;
-    }
-
-    private double logisticFunction(float magnitude)
-    {
-        if (magnitude*2 <= C_min)
-        {
-            return 1;
-        }
-        else
-        {
-            double ratio;
-            float a = 50f;
-            float b = -0.2f;
-            float c = 0.6f;
-            float d = 14.8f;
-
-            float y = (a - b) / (1 + Mathf.Exp(-c * (magnitude * 2 - d))) + b;
-
-            ratio = 2 * y / ((magnitude * 2));
-
-            return ratio;
-        }
     }
 
     private void rotating()

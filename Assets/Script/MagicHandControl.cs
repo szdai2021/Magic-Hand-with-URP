@@ -301,7 +301,8 @@ public class MagicHandControl : MonoBehaviour
         prevExperimentStart = experimentStart;
 
         // fetch the gesture detection flag from hand model
-        current_gestureDetection = (VRHand.GetComponent<VRHandControl>().gestureDetection | VRHand.GetComponent<VRHandControl>().rotationGesture);
+        // current_gestureDetection = (VRHand.GetComponent<VRHandControl>().gestureDetection | VRHand.GetComponent<VRHandControl>().rotationGesture);
+        current_gestureDetection = (VRHand.GetComponent<VRHandControlGoGo>().gestureDetection | VRHand.GetComponent<VRHandControlGoGo>().rotationGesture);
 
         switch (((int)controlMethod))
         {
@@ -513,7 +514,7 @@ public class MagicHandControl : MonoBehaviour
                 
             print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5 + " " + projectionPlaneIndex);
 
-            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
+            unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, acc:330, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
 
             skipFrameCounter = 0;
             prevCloesetVector = closestDataPoint.transform.position;
