@@ -88,6 +88,9 @@ public class VRHandControlGoGo : MonoBehaviour
     public GameObject gogoCenter;
 
     public bool gogoTestFlag = false;
+    public float linearScaleRatio = 15;
+    public float linearScaleThreshold = 0.5f;
+    public float linearScaleC = 7f;
 
     private void Start()
     {
@@ -222,17 +225,26 @@ public class VRHandControlGoGo : MonoBehaviour
 
             Vector3 normal = Vector3.Normalize(this.transform.position - gogoCenter.transform.position);
 
-            if (offset < range * 0.5)
+            if (offset < range * linearScaleThreshold)
             {
                 VRHandTwinPosOffset_Local = offset * normal;
             }
-            else if (offset >= range * 0.5)
+            else if (offset >= range * linearScaleThreshold)
             {
-                double r = offset / range;
-                float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
-
-                VRHandTwinPosOffset_Local = (float)(range * 0.5) * normal + (offset - (float)(range * 0.5)) * normal * new_r;
+                VRHandTwinPosOffset_Local = offset * normal * ((offset / range)*linearScaleRatio - linearScaleC);
             }
+
+            //if (offset < range * 0.5)
+            //{
+            //    VRHandTwinPosOffset_Local = offset * normal;
+            //}
+            //else if (offset >= range * 0.5)
+            //{
+            //    double r = offset / range;
+            //    float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
+
+            //    VRHandTwinPosOffset_Local = (float)(range * 0.5) * normal + (offset - (float)(range * 0.5)) * normal * new_r;
+            //}
         }
     }
 
