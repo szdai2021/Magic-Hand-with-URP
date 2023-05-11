@@ -20,6 +20,8 @@ public class VRHandArmRender : MonoBehaviour
 
     public ArmRender methodSwitch = new ArmRender();
 
+    [HideInInspector]public bool normalFlag = false;
+
     private float d1, d2;
 
     public float offset = 0.09f;
@@ -32,6 +34,15 @@ public class VRHandArmRender : MonoBehaviour
             middleJiont.SetActive(true);
             cylinder1.SetActive(true);
             cylinder2.SetActive(true);
+
+            if (normalFlag)
+            {
+                methodSwitch = ArmRender.Normal;
+            }
+            else
+            {
+                methodSwitch = ArmRender.Center;
+            }
 
             switch ((int)methodSwitch)
             {
@@ -103,6 +114,21 @@ public class VRHandArmRender : MonoBehaviour
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
                     cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
                     break;
+                case 3:
+                    middleJiont.transform.position = elbowVICON.transform.position;
+
+                    cylinder1.transform.position = shoulderJoint.transform.position;
+                    cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
+
+                    d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
+
+                    cylinder2.transform.position = handJoint.transform.position;
+                    cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
+
+                    d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
+                    break;
                 default:
                     break;
             }
@@ -119,7 +145,8 @@ public class VRHandArmRender : MonoBehaviour
     {
         ForeArm,
         Center,
-        Scale
+        Scale,
+        Normal
     }
 
 }

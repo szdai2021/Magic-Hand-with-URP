@@ -13,7 +13,6 @@ using EzySlice;
  */
 public class PlaneUsageExample : MonoBehaviour {
 
-	public GameObject source;
 	public Material crossMat;
 	public bool recursiveSlice;
 
@@ -22,7 +21,7 @@ public class PlaneUsageExample : MonoBehaviour {
         return obj.Slice(transform.position, transform.up, crossSectionMaterial);
 	}
 
-	public GameObject[] sliceObject()
+	public GameObject[] sliceObject(GameObject source)
 	{
 		SlicedHull hull = SliceObject(source, crossMat);
 

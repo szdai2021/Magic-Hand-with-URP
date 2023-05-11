@@ -228,6 +228,13 @@ public class MagicHandControl : MonoBehaviour
                 case 3:
                     controlMethod = Options.Portal;
                     VR_Hand_Control.methodSwitch = HandControl.Portal;
+                    //VR_Hand_Control.methodSwitch = HandControl.Sphere;
+
+                    orderInUse = orderNo3;
+                    break;
+                case 4: // portal with robot
+                    controlMethod = Options.Portal;
+                    VR_Hand_Control.methodSwitch = HandControl.Portal;
 
                     orderInUse = orderNo3;
                     break;
@@ -313,7 +320,8 @@ public class MagicHandControl : MonoBehaviour
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
                 VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
 
-                cameraParent.SetActive(true);
+                cameraParent.SetActive(false);
+
                 Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
 
                 if (rotationLock)
@@ -331,7 +339,8 @@ public class MagicHandControl : MonoBehaviour
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
                 VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
 
-                cameraParent.SetActive(true);
+                cameraParent.SetActive(false);
+
                 Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
                 if (rotationLock)
                 {
@@ -342,7 +351,7 @@ public class MagicHandControl : MonoBehaviour
                 
                 break;
             case 2: // portal control
-                ArmRender.enable = false;
+                ArmRender.enable = true;
 
                 setObjectActive(portalRelevant, true);
 
@@ -351,6 +360,36 @@ public class MagicHandControl : MonoBehaviour
                 //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(portal2.transform, portal1.transform, sphere.transform);
                 (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(portal2PlaceHolder.transform, portal1PlaceHolder.transform, sphereParent.transform);
 
+                if (current_gestureDetection)
+                {
+                    ArmRender.GetComponent<VRHandArmRender>().normalFlag = false;
+                }
+                else
+                {
+                    ArmRender.GetComponent<VRHandArmRender>().normalFlag = true;
+                }
+
+                break;
+            case 3: // portal control + robot
+                ArmRender.enable = true;
+
+                setObjectActive(portalRelevant, true);
+
+                cameraParent.SetActive(false);
+
+                //(sphereTwin.transform.position, sphereTwin.transform.rotation) = getTargetPosRot(portal2.transform, portal1.transform, sphere.transform);
+                (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(portal2PlaceHolder.transform, portal1PlaceHolder.transform, sphereParent.transform);
+
+                if (current_gestureDetection)
+                {
+                    ArmRender.GetComponent<VRHandArmRender>().normalFlag = false;
+                }
+                else
+                {
+                    ArmRender.GetComponent<VRHandArmRender>().normalFlag = true;
+                }
+
+                // robot: to do
                 break;
             default: // magic hand control
                 ArmRender.enable = false;
@@ -358,7 +397,8 @@ public class MagicHandControl : MonoBehaviour
                 setObjectActive(portalRelevant, false);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
 
-                cameraParent.SetActive(true);
+                cameraParent.SetActive(false);
+
                 Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
                 if (rotationLock)
                 {
@@ -813,7 +853,7 @@ public class MagicHandControl : MonoBehaviour
 
     private void saveExperimentResult() // save the result of experiment with participant number, scenario number in a txt file
     {
-        string fileName = "YO-YO " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        string fileName = "Linear GoGo " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
         string saveFileName = "Assets/RawData/" + fileName + ".txt";
 
         while (File.Exists(saveFileName))
@@ -839,7 +879,7 @@ public class MagicHandControl : MonoBehaviour
 
     private void saveHandMovement()
     {
-        string fileName = "YO-YO Hand Trajectory " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        string fileName = "Linear GoGo Hand Trajectory " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
         string saveFileName = "Assets/RawData/" + fileName + ".txt";
 
         while (File.Exists(saveFileName))

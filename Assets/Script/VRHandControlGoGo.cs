@@ -121,8 +121,6 @@ public class VRHandControlGoGo : MonoBehaviour
             {
                 sphereGoGoInteraction();
             }
-            //gogoInteraction();
-            //sphereGoGoInteraction();
 
             if (selectedPortal != null)
             {
@@ -136,7 +134,6 @@ public class VRHandControlGoGo : MonoBehaviour
                     selectedPortal.transform.rotation = relativeRotation * selectedPortal.transform.rotation;
                 }
             }
-            
 
             positionReference = this.transform.position;
             RotationReference = this.transform.rotation;
@@ -173,8 +170,6 @@ public class VRHandControlGoGo : MonoBehaviour
                 {
                     sphereGoGoInteraction();
                 }
-                //gogoInteraction();
-                //sphereGoGoInteraction();
                 break;
             default:
                 
@@ -202,16 +197,6 @@ public class VRHandControlGoGo : MonoBehaviour
 
         rotating();
 
-        // stopping plane method - inactive
-        //if (stopPlane.transform.GetChild(1).GetComponent<BoxCollider>().bounds.Contains(VRHandTwin.transform.position) & gestureDetection)
-        //{
-        //    stopPlane.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
-        //}
-        //else
-        //{
-        //    stopPlane.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
-        //}
-
         prevHandPos = this.transform.position;
         prevScenario = (int)methodSwitch;
     }
@@ -233,18 +218,6 @@ public class VRHandControlGoGo : MonoBehaviour
             {
                 VRHandTwinPosOffset_Local = offset * normal * ((offset / range)*linearScaleRatio - linearScaleC);
             }
-
-            //if (offset < range * 0.5)
-            //{
-            //    VRHandTwinPosOffset_Local = offset * normal;
-            //}
-            //else if (offset >= range * 0.5)
-            //{
-            //    double r = offset / range;
-            //    float new_r = Mathf.Exp((float)(4.5 * r)) - 4.49f;
-
-            //    VRHandTwinPosOffset_Local = (float)(range * 0.5) * normal + (offset - (float)(range * 0.5)) * normal * new_r;
-            //}
         }
     }
 

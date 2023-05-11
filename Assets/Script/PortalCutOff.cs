@@ -30,6 +30,17 @@ public class PortalCutOff : MonoBehaviour
 
     private GameObject upperHandHullClone;
 
+    public GameObject VRArm;
+    public GameObject VRArmClone; // whole arm render
+
+    public GameObject ArmHullClone;
+    public GameObject VRArmHull;
+
+    private GameObject upperArmHull;
+    private GameObject lowerArmHull;
+
+    private GameObject upperArmHullClone;
+
     public float resizeScale = 1;
 
     private bool throughPortal = false;
@@ -41,6 +52,7 @@ public class PortalCutOff : MonoBehaviour
         {
             if (checkBox.bounds.Contains(VRHand.transform.position))
             {
+                // hand portal cut off
                 (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHand.transform);
                 (HandHullClone.transform.position, HandHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHandHull.transform);
 
@@ -55,16 +67,19 @@ public class PortalCutOff : MonoBehaviour
                     VRHandTwin.transform.localScale = Vector3.one;
                 }
 
-                portalHandPosControl();
+                // arm portal cut off
+                (VRArmClone.transform.position, VRArmClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRArm.transform);
+                (ArmHullClone.transform.position, ArmHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRArmHull.transform);
 
-                //GameObject.FindGameObjectsWithTag("Ray")[0].GetComponent<MeshRenderer>().enabled = false;
+                portalHandPosControl();
             }
             else
             {
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
                 VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
 
-                //GameObject.FindGameObjectsWithTag("Ray")[0].GetComponent<MeshRenderer>().enabled = true;
+                VRArm.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
             }
         }
     }
@@ -79,7 +94,7 @@ public class PortalCutOff : MonoBehaviour
             Object.Destroy(upperHandHullClone);
         }
 
-        GameObject[] handHulls = PUE.sliceObject();
+        GameObject[] handHulls = PUE.sliceObject(VRHandHull);
 
         if (handHulls == null) // no intersaction between the hand and the cutting plane
         {
@@ -116,9 +131,44 @@ public class PortalCutOff : MonoBehaviour
             upperHandHullClone.transform.localRotation = upperHandHull.transform.localRotation;
             upperHandHullClone.transform.localScale = new Vector3(1, 1, 1);
 
-            //upperHandHull.SetActive(false);
             lowerHandHull.GetComponent<Renderer>().material = VRHandMaterial;
             upperHandHullClone.GetComponent<Renderer>().material = VRHandMaterial;
+        }
+
+        // arm
+        if (upperArmHull != null | lowerArmHull != null | upperArmHullClone != null)
+        {
+            Object.Destroy(upperArmHull);
+            Object.Destroy(lowerArmHull);
+            Object.Destroy(upperArmHullClone);
+        }
+
+        GameObject[] armHulls = PUE.sliceObject(VRArmHull);
+
+        if (armHulls == null) // no intersaction between the hand and the cutting plane
+        {
+            VRArm.GetComponent<VRHandDisplay>().hideVRHand = false;
+            VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
+        }
+        else // Upper handhull and lower handhull generated
+        {
+            VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
+            VRArm.GetComponent<VRHandDisplay>().hideVRHand = true;
+
+            upperArmHull = handHulls[0];
+            lowerArmHull = handHulls[1];
+
+            upperArmHull.transform.SetParent(VRArmHull.transform);
+            lowerArmHull.transform.SetParent(VRArmHull.transform);
+
+            upperArmHullClone = Instantiate(upperArmHull);
+            upperArmHullClone.transform.SetParent(ArmHullClone.transform);
+            upperArmHullClone.transform.localPosition = upperArmHull.transform.localPosition;
+            upperArmHullClone.transform.localRotation = upperArmHull.transform.localRotation;
+            upperArmHullClone.transform.localScale = new Vector3(1, 1, 1);
+
+            lowerArmHull.GetComponent<Renderer>().material = VRHandMaterial;
+            upperArmHullClone.GetComponent<Renderer>().material = VRHandMaterial;
         }
     }
 }
