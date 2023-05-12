@@ -9,6 +9,7 @@ public class VRHandArmRender : MonoBehaviour
 
     public GameObject middleJiont;
     public GameObject handJoint;
+    public GameObject normalHandJiont;
     public GameObject shoulderJoint;
 
     public GameObject cylinder1; // shoulder to elbow
@@ -20,7 +21,7 @@ public class VRHandArmRender : MonoBehaviour
 
     public ArmRender methodSwitch = new ArmRender();
 
-    [HideInInspector]public bool normalFlag = false;
+    public bool normalFlag = false;
 
     private float d1, d2;
 
@@ -123,10 +124,10 @@ public class VRHandArmRender : MonoBehaviour
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
                     cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
 
-                    cylinder2.transform.position = handJoint.transform.position;
+                    cylinder2.transform.position = normalHandJiont.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
-                    d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
+                    d2 = Vector3.Distance(middleJiont.transform.position, normalHandJiont.transform.position);
                     cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
                     break;
                 default:

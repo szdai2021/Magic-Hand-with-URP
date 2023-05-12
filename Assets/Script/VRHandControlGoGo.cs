@@ -105,53 +105,27 @@ public class VRHandControlGoGo : MonoBehaviour
         DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local + OffsetRAM;
         DWC2.transform.rotation = DWC1.transform.rotation * VRHandTwinRotOffset * TempRotationReference;
 
-        if (((int)methodSwitch) == 3)
+        PortalCutOff.enable = false;
+        lineRenderer.positionCount = 0;
+
+        directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = DirectionArrow_Parent;
+        DWC2.GetComponent<directionWheelControl>().posParent = DWC2_Parent;
+
+        if (gestureDetection)
         {
-            PortalCutOff.enable = true; // enable slicing plane on portals
-
-            directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = selectedPortal;
-            DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
-            VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
-            
-            if (gogoTestFlag)
-            {
-                gogoInteraction();
-            }
-            else
-            {
-                sphereGoGoInteraction();
-            }
-
-            if (selectedPortal != null)
-            {
-                if (gestureDetection) // position change
-                {
-                    selectedPortal.transform.position = VRHandTwinPosOffset_Local;
-                }
-                else if (rotationGesture) // rotation change
-                {
-                    Quaternion relativeRotation = this.transform.rotation * Quaternion.Inverse(RotationReference);
-                    selectedPortal.transform.rotation = relativeRotation * selectedPortal.transform.rotation;
-                }
-            }
-
-            positionReference = this.transform.position;
-            RotationReference = this.transform.rotation;
+            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
         }
         else
         {
-            PortalCutOff.enable = false;
-            lineRenderer.positionCount = 0;
-
-            directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = DirectionArrow_Parent;
-            DWC2.GetComponent<directionWheelControl>().posParent = DWC2_Parent;
-
-
-            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
-
-            adjustTranslationOffsetByRotation();
+            if ((int)methodSwitch == 3)
+            {
+                VRHandTwin.transform.position = this.transform.position;
+                VRHandTwin.transform.rotation = this.transform.rotation;
+            }
         }
-
+        
+        adjustTranslationOffsetByRotation();
+        
         checkTranslationGesture();
         checkRotationGesture();
 
@@ -170,6 +144,25 @@ public class VRHandControlGoGo : MonoBehaviour
                 {
                     sphereGoGoInteraction();
                 }
+                break;
+            case 3:
+                // selectedPortal.transform.position = VRHandTwinPosOffset_Local;
+                PortalCutOff.enable = true; // enable slicing plane on portals
+
+                if (gogoTestFlag)
+                {
+                    gogoInteraction();
+                }
+                else
+                {
+                    sphereGoGoInteraction();
+                }
+
+                if (gestureDetection)
+                {
+                    selectedPortal.transform.position = VRHandTwin.transform.position;
+                }
+
                 break;
             default:
                 

@@ -36,9 +36,9 @@ public class CopyAndCombineMesh : MonoBehaviour
         int i = 0;
         while (i < meshFilters.Length)
         {
-            combine[i].mesh = meshFilters[i].sharedMesh;
+            combine[i].mesh = meshFilters[i].mesh;
             combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
-            meshFilters[i].gameObject.SetActive(false);
+            //meshFilters[i].gameObject.SetActive(false);
 
             i++;
         }

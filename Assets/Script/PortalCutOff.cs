@@ -50,6 +50,19 @@ public class PortalCutOff : MonoBehaviour
     {
         if (enable)
         {
+            if (VRHand.GetComponent<VRHandControlGoGo>().gestureDetection)
+            {
+                cleanUnusedHull();
+
+                VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
+            }
+            else
+            {
+                VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
+            }
+
             if (checkBox.bounds.Contains(VRHand.transform.position))
             {
                 // hand portal cut off
@@ -75,11 +88,8 @@ public class PortalCutOff : MonoBehaviour
             }
             else
             {
-                VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
-                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
-
-                VRArm.GetComponent<VRHandDisplay>().hideVRHand = false;
-                VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
+                //VRArm.GetComponent<VRHandDisplay>().hideVRHand = false;
+                //VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
             }
         }
     }
@@ -87,12 +97,7 @@ public class PortalCutOff : MonoBehaviour
 
     private void portalHandPosControl()
     {
-        if (upperHandHull != null | lowerHandHull != null | upperHandHullClone != null)
-        {
-            Object.Destroy(upperHandHull);
-            Object.Destroy(lowerHandHull);
-            Object.Destroy(upperHandHullClone);
-        }
+        cleanUnusedHull();
 
         GameObject[] handHulls = PUE.sliceObject(VRHandHull);
 
@@ -136,13 +141,6 @@ public class PortalCutOff : MonoBehaviour
         }
 
         // arm
-        if (upperArmHull != null | lowerArmHull != null | upperArmHullClone != null)
-        {
-            Object.Destroy(upperArmHull);
-            Object.Destroy(lowerArmHull);
-            Object.Destroy(upperArmHullClone);
-        }
-
         GameObject[] armHulls = PUE.sliceObject(VRArmHull);
 
         if (armHulls == null) // no intersaction between the hand and the cutting plane
@@ -155,8 +153,8 @@ public class PortalCutOff : MonoBehaviour
             VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
             VRArm.GetComponent<VRHandDisplay>().hideVRHand = true;
 
-            upperArmHull = handHulls[0];
-            lowerArmHull = handHulls[1];
+            upperArmHull = armHulls[0];
+            lowerArmHull = armHulls[1];
 
             upperArmHull.transform.SetParent(VRArmHull.transform);
             lowerArmHull.transform.SetParent(VRArmHull.transform);
@@ -169,6 +167,23 @@ public class PortalCutOff : MonoBehaviour
 
             lowerArmHull.GetComponent<Renderer>().material = VRHandMaterial;
             upperArmHullClone.GetComponent<Renderer>().material = VRHandMaterial;
+        }
+    }
+
+    private void cleanUnusedHull()
+    {
+        if (upperHandHull != null | lowerHandHull != null | upperHandHullClone != null)
+        {
+            Object.Destroy(upperHandHull);
+            Object.Destroy(lowerHandHull);
+            Object.Destroy(upperHandHullClone);
+        }
+
+        if (upperArmHull != null | lowerArmHull != null | upperArmHullClone != null)
+        {
+            Object.Destroy(upperArmHull);
+            Object.Destroy(lowerArmHull);
+            Object.Destroy(upperArmHullClone);
         }
     }
 }

@@ -441,6 +441,9 @@ public class MagicHandControl : MonoBehaviour
             {
                 resetAnimation();
             }
+
+            // robot move
+
         }
 
         prev_gestureDetection = current_gestureDetection;
