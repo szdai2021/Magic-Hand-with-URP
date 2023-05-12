@@ -142,6 +142,8 @@ public class MagicHandControl : MonoBehaviour
 
     public bool resetTest = false;
 
+    public bool startInitialPoint = false;
+
     IEnumerator delayStart()
     {
         while (true)
@@ -292,9 +294,6 @@ public class MagicHandControl : MonoBehaviour
                     GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
                     newPoint2.transform.SetParent(sphereParent.transform);
                     newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-
-                    // stopping plane method - inactive
-                    //stopPlane.transform.position = startPoint.transform.position;
                 }
             }
 
@@ -302,13 +301,12 @@ public class MagicHandControl : MonoBehaviour
 
             afterHandCollision();
 
-            debugText.GetComponent<TextMesh>().text = string.Join(",", orderInUse.Select(x => x.ToString())) + " , Index: " +  currentOrderIndex.ToString();
+            // debugText.GetComponent<TextMesh>().text = string.Join(",", orderInUse.Select(x => x.ToString())) + " , Index: " +  currentOrderIndex.ToString();
         }
 
         prevExperimentStart = experimentStart;
 
         // fetch the gesture detection flag from hand model
-        // current_gestureDetection = (VRHand.GetComponent<VRHandControl>().gestureDetection | VRHand.GetComponent<VRHandControl>().rotationGesture);
         current_gestureDetection = (VRHand.GetComponent<VRHandControlGoGo>().gestureDetection | VRHand.GetComponent<VRHandControlGoGo>().rotationGesture);
 
         switch (((int)controlMethod))
@@ -443,7 +441,26 @@ public class MagicHandControl : MonoBehaviour
             }
 
             // robot move
+            if (robotRange.bounds.Contains(closestDataPoint.transform.position) &
+            Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001 &
+            unityClient.startCalibration == false &
+            prev_gestureDetection == true &
+            current_gestureDetection == false
+            )
+            {
+                sliderReference.transform.position = closestDataPoint.transform.position;
 
+                Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
+
+                unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 0);
+
+                prevCloesetVector = closestDataPoint.transform.position;
+            }
+
+            if (prev_gestureDetection == false & current_gestureDetection == true & !unityClient.homePosition)
+            {
+                unityClient.initialPos();
+            }
         }
 
         prev_gestureDetection = current_gestureDetection;
@@ -579,16 +596,156 @@ public class MagicHandControl : MonoBehaviour
         skipFrameCounter++;
     }
 
+    // this method require user to return to the start point after each interaction
+    //private void afterHandCollision()
+    //{
+    //    if (startPointTouched & !prevStartPointTouched)
+    //    {
+    //        startPoint.SetActive(false);
+
+    //        // start timer here
+    //        if (experimentStage == 1)
+    //        {
+    //            timeStamp = Time.time;
+    //        }
+
+    //        currentDataPoint = scatterParent.transform.GetChild(orderInUse[currentOrderIndex]).gameObject;
+
+    //        currentDataPoint.GetComponent<SphereCollider>().enabled = true;
+
+    //        if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length < 2)
+    //        {
+    //            // add the outline effect as the second render material
+    //            Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+    //            Array.Resize(ref materials, materials.Length + 1);
+    //            materials[materials.Length - 1] = outline;
+    //            currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+    //        }
+
+    //        foreach (Transform g in sphereParentTwin.transform)
+    //        {
+    //            GameObject.Destroy(g.gameObject);
+    //        }
+
+    //        foreach (Transform g in sphereParent.transform)
+    //        {
+    //            GameObject.Destroy(g.gameObject);
+    //        }
+
+    //        GameObject newPoint1 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
+    //        newPoint1.transform.SetParent(sphereParentTwin.transform);
+    //        newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+            
+
+    //        GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
+    //        newPoint2.transform.SetParent(sphereParent.transform);
+    //        newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+
+    //        newPoint1.transform.localPosition = newPoint2.transform.localPosition;
+
+    //        // stopping plane method - inactive
+    //        //stopPlane.transform.position = currentDataPoint.transform.position;
+
+    //        if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
+    //        {
+    //            trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+
+    //            posList = new List<Vector3>();
+    //        }
+
+    //    }
+    //    else if(dataPointTouched & !prevDataPointTouched)
+    //    {
+    //        // stop timer here
+    //        if (experimentStage == 1)
+    //        {
+    //            timeList.Add(Time.time - timeStamp);
+    //        }
+
+    //        currentDataPoint.GetComponent<SphereCollider>().enabled = false;
+
+    //        // remove the outline effect by deleting the second render material
+    //        if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
+    //        {
+    //            // Remove the second material from the materials array
+    //            Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+    //            Array.Resize(ref materials, 1);
+    //            currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+    //        }
+
+    //        startPoint.SetActive(true);
+
+    //        foreach (Transform g in sphereParentTwin.transform)
+    //        {
+    //            GameObject.Destroy(g.gameObject);
+    //        }
+
+    //        foreach (Transform g in sphereParent.transform)
+    //        {
+    //            GameObject.Destroy(g.gameObject);
+    //        }
+
+    //        GameObject newPoint1 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
+    //        newPoint1.transform.SetParent(sphereParentTwin.transform);
+    //        newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+
+    //        GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
+    //        newPoint2.transform.SetParent(sphereParent.transform);
+    //        newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+
+    //        newPoint1.transform.localPosition = newPoint2.transform.localPosition;
+
+    //        if (currentOrderIndex + 1 >= orderInUse.Count)
+    //            {
+    //                experimentStage += 1;
+
+    //                currentOrderIndex = 0;
+    //            }
+    //            else
+    //            {
+    //                currentOrderIndex += 1;
+
+    //                // stopping plane method - inactive
+    //                //stopPlane.transform.position = startPoint.transform.position;
+    //            }
+
+    //    }
+
+    //    prevStartPointTouched = startPointTouched;
+    //    prevDataPointTouched = dataPointTouched;
+    //}
+
     private void afterHandCollision()
     {
-        if (startPointTouched & !prevStartPointTouched)
+        if ((dataPointTouched & !prevDataPointTouched) | startInitialPoint)
         {
-            startPoint.SetActive(false);
+            startInitialPoint = false;
 
-            // start timer here
+            // stop timer here
             if (experimentStage == 1)
             {
-                timeStamp = Time.time;
+                timeList.Add(Time.time);
+            }
+
+            currentDataPoint.GetComponent<SphereCollider>().enabled = false;
+
+            // remove the outline effect by deleting the second render material
+            if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
+            {
+                // Remove the second material from the materials array
+                Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+                Array.Resize(ref materials, 1);
+                currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+            }
+
+            foreach (Transform g in sphereParentTwin.transform)
+            {
+                GameObject.Destroy(g.gameObject);
+            }
+
+            foreach (Transform g in sphereParent.transform)
+            {
+                GameObject.Destroy(g.gameObject);
             }
 
             currentDataPoint = scatterParent.transform.GetChild(orderInUse[currentOrderIndex]).gameObject;
@@ -604,20 +761,9 @@ public class MagicHandControl : MonoBehaviour
                 currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
             }
 
-            foreach (Transform g in sphereParentTwin.transform)
-            {
-                GameObject.Destroy(g.gameObject);
-            }
-
-            foreach (Transform g in sphereParent.transform)
-            {
-                GameObject.Destroy(g.gameObject);
-            }
-
             GameObject newPoint1 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
             newPoint1.transform.SetParent(sphereParentTwin.transform);
             newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
-            
 
             GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
             newPoint2.transform.SetParent(sphereParent.transform);
@@ -625,8 +771,16 @@ public class MagicHandControl : MonoBehaviour
 
             newPoint1.transform.localPosition = newPoint2.transform.localPosition;
 
-            // stopping plane method - inactive
-            //stopPlane.transform.position = currentDataPoint.transform.position;
+            if (currentOrderIndex + 1 >= orderInUse.Count)
+            {
+                experimentStage += 1;
+
+                currentOrderIndex = 0;
+            }
+            else
+            {
+                currentOrderIndex += 1;
+            }
 
             if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
             {
@@ -634,66 +788,8 @@ public class MagicHandControl : MonoBehaviour
 
                 posList = new List<Vector3>();
             }
-
-        }
-        else if(dataPointTouched & !prevDataPointTouched)
-        {
-            // stop timer here
-            if (experimentStage == 1)
-            {
-                timeList.Add(Time.time - timeStamp);
-            }
-
-            currentDataPoint.GetComponent<SphereCollider>().enabled = false;
-
-            // remove the outline effect by deleting the second render material
-            if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
-            {
-                // Remove the second material from the materials array
-                Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
-                Array.Resize(ref materials, 1);
-                currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
-            }
-
-            startPoint.SetActive(true);
-
-            foreach (Transform g in sphereParentTwin.transform)
-            {
-                GameObject.Destroy(g.gameObject);
-            }
-
-            foreach (Transform g in sphereParent.transform)
-            {
-                GameObject.Destroy(g.gameObject);
-            }
-
-            GameObject newPoint1 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-            newPoint1.transform.SetParent(sphereParentTwin.transform);
-            newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
-
-            GameObject newPoint2 = Instantiate(dataPoint, startPoint.transform.position, Quaternion.identity);
-            newPoint2.transform.SetParent(sphereParent.transform);
-            newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-
-            newPoint1.transform.localPosition = newPoint2.transform.localPosition;
-
-            if (currentOrderIndex + 1 >= orderInUse.Count)
-                {
-                    experimentStage += 1;
-
-                    currentOrderIndex = 0;
-                }
-                else
-                {
-                    currentOrderIndex += 1;
-
-                    // stopping plane method - inactive
-                    //stopPlane.transform.position = startPoint.transform.position;
-                }
-
         }
 
-        prevStartPointTouched = startPointTouched;
         prevDataPointTouched = dataPointTouched;
     }
 
