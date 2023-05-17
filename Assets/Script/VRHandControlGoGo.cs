@@ -122,6 +122,10 @@ public class VRHandControlGoGo : MonoBehaviour
                 VRHandTwin.transform.position = this.transform.position;
                 VRHandTwin.transform.rotation = this.transform.rotation;
             }
+            else
+            {
+                (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
+            }
         }
         
         adjustTranslationOffsetByRotation();
@@ -220,7 +224,7 @@ public class VRHandControlGoGo : MonoBehaviour
         {
             grappingDetectionArea.SetActive(false);
 
-            directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = false;
+            //directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = false;
             DSC.posSyc = false;
 
             // change the size of the direction arrow and the orientation
@@ -251,7 +255,7 @@ public class VRHandControlGoGo : MonoBehaviour
         {
             grappingDetectionArea.SetActive(true);
 
-            directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = true;
+            //directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = true;
             DSC.posSyc = true;
         }
 
@@ -313,21 +317,11 @@ public class VRHandControlGoGo : MonoBehaviour
                     if (gestureCounter > gestureDetectingDelay)
                     {
                         gestureDetection = true;
-
-                        grapTarget.SetActive(false);
-                        grapTargetOnHand.SetActive(true);
-
-                        //if (fixedPosDetectionMode & !unity_client.homePosition)
-                        //{
-                        //    unity_client.initialPos();
-                        //}
                     }
                 }
                 else
                 {
                     gestureDetection = false;
-                    grapTarget.SetActive(true);
-                    grapTargetOnHand.SetActive(false);
                     DWC2.hide = true;
                     gestureCounter = 0;
                 }

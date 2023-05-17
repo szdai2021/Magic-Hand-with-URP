@@ -54,13 +54,19 @@ public class PortalCutOff : MonoBehaviour
             {
                 cleanUnusedHull();
 
-                VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
-                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
+
+                VRArm.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
             }
             else
             {
-                VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
-                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRHand.GetComponent<VRHandDisplay>().hideVRHand = false;
+                VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = true;
+
+                VRArm.GetComponent<VRHandDisplay>().hideVRHand = true;
+                VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = false;
             }
 
             if (checkBox.bounds.Contains(VRHand.transform.position))
