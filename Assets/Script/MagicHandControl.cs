@@ -78,7 +78,11 @@ public class MagicHandControl : MonoBehaviour
     private int currentOrderIndex = -1;
     private List<float> timeList = new List<float>();
     private List<Vector3> posList = new List<Vector3>();
+    private List<float> TimeStampList = new List<float>();
+    private List<float> DistanceList = new List<float>();
     private Dictionary<int, List<Vector3>> trajectoryDict = new Dictionary<int, List<Vector3>>();
+    private Dictionary<int, List<float>> trajectoryTimeStampDict = new Dictionary<int, List<float>>();
+    private Dictionary<int, List<float>> trajectoryDistanceDict = new Dictionary<int, List<float>>();
     private float timeStamp;
     private GameObject currentDataPoint = null;
     private int duplicateFileIndex = 0;
@@ -156,7 +160,7 @@ public class MagicHandControl : MonoBehaviour
                 startAnimationFlag = false;
             }
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -252,13 +256,19 @@ public class MagicHandControl : MonoBehaviour
 
                     timeList = new List<float>();
                     posList = new List<Vector3>();
+                    DistanceList = new List<float>();
+                    TimeStampList = new List<float>();
                     trajectoryDict = new Dictionary<int, List<Vector3>>();
+                    trajectoryTimeStampDict = new Dictionary<int, List<float>>();
+                    trajectoryDistanceDict = new Dictionary<int, List<float>>();
                     break;
                 case 1: // in progress stage
                     titleDisplay.text = "User Study" + " " + currentOrderIndex.ToString();
                     orderInUse = experimentOrder;
 
                     posList.Add(VRHandTwin.transform.position);
+                    DistanceList.Add(Vector3.Distance(VRHandTwin.transform.position, currentDataPoint.transform.position));
+                    TimeStampList.Add(Time.time);
                     
                     break;
                 case 2: // finished
@@ -422,7 +432,7 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
 
-            if (prev_gestureDetection == true & current_gestureDetection == false)
+            if (prev_gestureDetection == true & current_gestureDetection == false & !animatorPortal.GetBool("start flying"))
             {
                 setAnimationStartingPos();
 
@@ -434,6 +444,19 @@ public class MagicHandControl : MonoBehaviour
                 resetAnimation();
             }
 
+            // start animation when in slow movement mode
+            if (VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag)
+            {
+                setAnimationStartingPos();
+
+                startAnimationFlag = true;
+            }
+
+            if (!VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag)
+            {
+                resetAnimation();
+            }
+
             // robot move
             if (robotMoveFlag)
             {
@@ -441,7 +464,8 @@ public class MagicHandControl : MonoBehaviour
 
                 if (robotRange.bounds.Contains(robotEndEffector.transform.position) &
                             unityClient.startCalibration == false &
-                            (unityClient.homePosition | Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001)
+                            (unityClient.homePosition | Vector3.Distance(prevCloesetVector, closestDataPoint.transform.position) > 0.0001) & 
+                            !current_gestureDetection
                             )
                 {
                     Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
@@ -518,6 +542,8 @@ public class MagicHandControl : MonoBehaviour
     private void resetDataList()
     {
         trajectoryDict = new Dictionary<int, List<Vector3>>();
+        trajectoryDistanceDict = new Dictionary<int, List<float>>();
+        trajectoryTimeStampDict = new Dictionary<int, List<float>>();
         timeList = new List<float>();
     }
 
@@ -780,8 +806,12 @@ public class MagicHandControl : MonoBehaviour
                 if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
                 {
                     trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+                    trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
+                    trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
 
                     posList = new List<Vector3>();
+                    DistanceList = new List<float>();
+                    TimeStampList = new List<float>();
                 }
 
                 currentOrderIndex += 1;
@@ -975,6 +1005,7 @@ public class MagicHandControl : MonoBehaviour
 
     private void saveHandMovement()
     {
+        // hand position
         string fileName = "Linear GoGo Hand Trajectory " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
         string saveFileName = "Assets/RawData/" + fileName + ".txt";
 
@@ -989,7 +1020,7 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
         sw.WriteLine(" ");
 
-        sw.WriteLine("Index_No.     Position.x      Position.y      Position.z");
+        sw.WriteLine("Index_No.     Position.x      Position.y      Position.z ");
         foreach (int index in trajectoryDict.Keys)
         {
             foreach (Vector3 pos in trajectoryDict[index])
@@ -1003,6 +1034,60 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(" ");
 
         sw.Close();
+
+        // hand time stamp
+        string fileName1 = "Linear GoGo Hand Trajectory Time Stamp" + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        string saveFileName1 = "Assets/RawData/" + fileName1 + ".txt";
+
+        while (File.Exists(saveFileName1))
+        {
+            duplicateFileIndex++;
+            saveFileName1 = "Assets/RawData/" + fileName1 + "_D" + duplicateFileIndex.ToString() + ".txt";
+        }
+
+        StreamWriter sw1 = new StreamWriter(saveFileName1);
+
+        sw1.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
+        sw1.WriteLine(" ");
+
+        sw1.WriteLine("Index_No.     Time_Stamp"); // Time Stamp
+        foreach (int index in trajectoryTimeStampDict.Keys)
+        {
+            foreach (float t in trajectoryTimeStampDict[index])
+            {
+                sw1.WriteLine(index.ToString() + "      " + t.ToString());
+            }
+        }
+        sw1.WriteLine(" ");
+
+        sw1.Close();
+
+        // hand target distance
+        string fileName2 = "Linear GoGo Hand Trajectory Distance" + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        string saveFileName2 = "Assets/RawData/" + fileName2 + ".txt";
+
+        while (File.Exists(saveFileName2))
+        {
+            duplicateFileIndex++;
+            saveFileName2 = "Assets/RawData/" + fileName2 + "_D" + duplicateFileIndex.ToString() + ".txt";
+        }
+
+        StreamWriter sw2 = new StreamWriter(saveFileName2);
+
+        sw2.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
+        sw2.WriteLine(" ");
+
+        sw2.WriteLine("Index_No.    Distance"); // Distance
+        foreach (int index in trajectoryDistanceDict.Keys)
+        {
+            foreach (float d in trajectoryDistanceDict[index])
+            {
+                sw2.WriteLine(index.ToString() + "      " + d.ToString());
+            }
+        }
+        sw2.WriteLine(" ");
+
+        sw2.Close();
     }
 }
 

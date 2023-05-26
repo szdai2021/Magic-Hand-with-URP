@@ -15,7 +15,7 @@ public class HapticColorIndicator : MonoBehaviour
     public GameObject sphereParent;
     public GameObject sphereParentTwinTemp;
 
-    public GameObject indicator;
+    public Material indicator;
 
     public bool enable = false;
 
@@ -31,11 +31,11 @@ public class HapticColorIndicator : MonoBehaviour
 
             if (RobotEndeffectorCollider.GetComponent<Collider>().bounds.Contains(TempEndEffector.transform.position))
             {
-                indicator.GetComponent<MeshRenderer>().material.color = Color.red;
+                indicator.color = Color.red;
             }
             else
             {
-                indicator.GetComponent<MeshRenderer>().material.color = Color.white;
+                indicator.color = Color.white;
             }
 
         }

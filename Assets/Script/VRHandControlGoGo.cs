@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class VRHandControlGoGo : MonoBehaviour
 {
@@ -91,6 +92,23 @@ public class VRHandControlGoGo : MonoBehaviour
     public float linearScaleRatio = 15;
     public float linearScaleThreshold = 0.5f;
     public float linearScaleC = 7f;
+
+    public bool DynamicArmEnable = false;
+    public float DynamicArmInThreshold = 1;
+    public float DynamicArmOutThreshold = 1;
+    public bool DynamicFlag = false;
+    private bool prevDynamicFlag = false;
+    public float testScale = 1;
+
+    public int catchUpFrameCounterMax = 60;
+    private int catchUpFrameCounter = 60;
+    private Vector3 catchUpRAM = Vector3.zero;
+    private Vector3 catchUpRAM2 = Vector3.zero;
+    private Vector3 prevOffset_Local = Vector3.zero;
+    private bool catchUpFlag = false;
+    private Vector3 tempPosRecorder = Vector3.zero;
+
+    public TextMeshPro debugDisplay;
 
     private void Start()
     {
@@ -207,14 +225,86 @@ public class VRHandControlGoGo : MonoBehaviour
 
             Vector3 normal = Vector3.Normalize(this.transform.position - gogoCenter.transform.position);
 
-            if (offset < range * linearScaleThreshold)
+            if (DynamicArmEnable)
             {
-                VRHandTwinPosOffset_Local = offset * normal;
+                if (!catchUpFlag & !DynamicFlag & Vector3.Distance(prevHandPos, this.transform.position) < DynamicArmInThreshold)
+                {
+                    DynamicFlag = true;
+                    tempPosRecorder = this.transform.position;
+                }
+                
+                if (DynamicFlag)
+                {
+                    debugDisplay.text = "In";
+
+                    normal = Vector3.Normalize(this.transform.position - tempPosRecorder);
+
+                    OffsetRAM = Vector3.Distance(tempPosRecorder, this.transform.position) * normal * testScale;
+
+                    if (Vector3.Distance(prevHandPos, this.transform.position) > DynamicArmOutThreshold)
+                    {
+                        DynamicFlag = false;
+                    }
+                }
+                else
+                {
+                    debugDisplay.text = "Out";
+
+                    if (offset < range * linearScaleThreshold)
+                    {
+                        VRHandTwinPosOffset_Local = offset * normal;
+                    }
+                    else if (offset >= range * linearScaleThreshold)
+                    {
+                        VRHandTwinPosOffset_Local = offset * normal * ((offset / range) * linearScaleRatio - linearScaleC);
+                    }
+
+                    // smooth catchUp to avoid sudden jump
+                    if (prevDynamicFlag & catchUpRAM == Vector3.zero & catchUpFrameCounter == catchUpFrameCounterMax)
+                    {
+                        catchUpFlag = true;
+
+                        prevOffset_Local = VRHandTwinPosOffset_Local+ OffsetRAM;
+                    }
+
+                    if (catchUpFlag)
+                    {
+                        debugDisplay.text = "catchUp";
+
+                        catchUpRAM = VRHandTwinPosOffset_Local - prevOffset_Local;
+
+                        VRHandTwinPosOffset_Local = prevOffset_Local + catchUpRAM / (catchUpFrameCounter);// + catchUpRAM2/(catchUpFrameCounterMax);
+
+                        catchUpFrameCounter -= 1;
+
+                        if (catchUpFrameCounter == 0)
+                        {
+                            catchUpFlag = false;
+                            catchUpRAM = Vector3.zero;
+                            catchUpFrameCounter = catchUpFrameCounterMax;
+                        }
+                    }
+
+                    OffsetRAM = Vector3.zero;
+                }
+
+                prevDynamicFlag = DynamicFlag;
             }
-            else if (offset >= range * linearScaleThreshold)
+            else
             {
-                VRHandTwinPosOffset_Local = offset * normal * ((offset / range)*linearScaleRatio - linearScaleC);
+                if (offset < range * linearScaleThreshold)
+                {
+                    VRHandTwinPosOffset_Local = offset * normal;
+                }
+                else if (offset >= range * linearScaleThreshold)
+                {
+                    VRHandTwinPosOffset_Local = offset * normal * ((offset / range) * linearScaleRatio - linearScaleC);
+                }
             }
+        }
+        else
+        {
+            OffsetRAM = Vector3.zero;
         }
     }
 

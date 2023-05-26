@@ -25,7 +25,8 @@ public class VRHandArmRender : MonoBehaviour
 
     private float d1, d2;
 
-    public float offset = 0.09f;
+    public float a = 0.09f;
+    public float b = 2.75f;
 
     // Update is called once per frame
     void Update()
@@ -54,13 +55,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f );
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - a) / b );
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - a) / b);
                     break;
                 case 1:
                     Vector3 elbowProjection = Vector3.Project(elbowVICON.transform.position - shoulderJoint.transform.position, (handJoint.transform.position - shoulderJoint.transform.position).normalized) + shoulderJoint.transform.position;
@@ -73,13 +74,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - a) / b);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - a) / b);
                     break;
                 case 2: 
                     // Calculate the direction from pointC to pointA
@@ -107,13 +108,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - a) / b);
 
                     cylinder2.transform.position = handJoint.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, handJoint.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - a) / b);
                     break;
                 case 3:
                     middleJiont.transform.position = elbowVICON.transform.position;
@@ -122,13 +123,13 @@ public class VRHandArmRender : MonoBehaviour
                     cylinder1.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d1 = Vector3.Distance(middleJiont.transform.position, shoulderJoint.transform.position);
-                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - 0.09f) / 2.75f);
+                    cylinder1.transform.localScale = new Vector3(cylinder1.transform.localScale.x, cylinder1.transform.localScale.y, (d1 - a) / b);
 
                     cylinder2.transform.position = normalHandJiont.transform.position;
                     cylinder2.transform.LookAt(middleJiont.transform, Vector3.left);
 
                     d2 = Vector3.Distance(middleJiont.transform.position, normalHandJiont.transform.position);
-                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - 0.09f) / 2.75f);
+                    cylinder2.transform.localScale = new Vector3(cylinder2.transform.localScale.x, cylinder2.transform.localScale.y, (d2 - a) / b);
                     break;
                 default:
                     break;
