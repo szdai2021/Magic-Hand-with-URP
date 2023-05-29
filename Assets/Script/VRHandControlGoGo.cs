@@ -100,8 +100,11 @@ public class VRHandControlGoGo : MonoBehaviour
     private bool prevDynamicFlag = false;
     public float testScale = 1;
 
-    public int catchUpFrameCounterMax = 60;
-    private int catchUpFrameCounter = 60;
+    private List<Vector3> DynamicArmPosRecordTempList = new List<Vector3>(6);
+    private Queue<Vector3> DynamicArmPosRecordTempQueue = new Queue<Vector3>(6);
+
+    //public int catchUpFrameCounterMax = 60;
+    private int catchUpFrameCounter = 30;
     private Vector3 catchUpRAM = Vector3.zero;
     private Vector3 catchUpRAM2 = Vector3.zero;
     private Vector3 prevOffset_Local = Vector3.zero;
@@ -220,6 +223,8 @@ public class VRHandControlGoGo : MonoBehaviour
     {
         if (gestureDetection)
         {
+            recordLast6HandPos();
+
             float offset = Vector3.Distance(gogoCenter.transform.position, this.transform.position);
             float range = Vector3.Distance(gogoPoint1.transform.position, gogoPoint2.transform.position);
 
@@ -227,16 +232,34 @@ public class VRHandControlGoGo : MonoBehaviour
 
             if (DynamicArmEnable)
             {
-                if (!catchUpFlag & !DynamicFlag & Vector3.Distance(prevHandPos, this.transform.position) < DynamicArmInThreshold)
+                bool allIntervalsSmallerThanThreshold = true;
+
+                if (DynamicArmPosRecordTempList.Count >= 6)
+                {
+                    // Calculate intervals and check against the threshold
+                    for (int i = 0; i < DynamicArmPosRecordTempList.Count - 1; i++)
+                    {
+                        float interval = Vector3.Distance(DynamicArmPosRecordTempList[i + 1], DynamicArmPosRecordTempList[i]);
+                        if (interval >= DynamicArmInThreshold)
+                        {
+                            allIntervalsSmallerThanThreshold = false;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    allIntervalsSmallerThanThreshold = false;
+                }
+                
+                if (!catchUpFlag & !DynamicFlag & allIntervalsSmallerThanThreshold)
                 {
                     DynamicFlag = true;
                     tempPosRecorder = this.transform.position;
                 }
-                
+
                 if (DynamicFlag)
                 {
-                    debugDisplay.text = "In";
-
                     normal = Vector3.Normalize(this.transform.position - tempPosRecorder);
 
                     OffsetRAM = Vector3.Distance(tempPosRecorder, this.transform.position) * normal * testScale;
@@ -244,12 +267,14 @@ public class VRHandControlGoGo : MonoBehaviour
                     if (Vector3.Distance(prevHandPos, this.transform.position) > DynamicArmOutThreshold)
                     {
                         DynamicFlag = false;
+
+                        catchUpFlag = true;
+
+                        prevOffset_Local = VRHandTwinPosOffset_Local + OffsetRAM;
                     }
                 }
                 else
                 {
-                    debugDisplay.text = "Out";
-
                     if (offset < range * linearScaleThreshold)
                     {
                         VRHandTwinPosOffset_Local = offset * normal;
@@ -260,13 +285,6 @@ public class VRHandControlGoGo : MonoBehaviour
                     }
 
                     // smooth catchUp to avoid sudden jump
-                    if (prevDynamicFlag & catchUpRAM == Vector3.zero & catchUpFrameCounter == catchUpFrameCounterMax)
-                    {
-                        catchUpFlag = true;
-
-                        prevOffset_Local = VRHandTwinPosOffset_Local+ OffsetRAM;
-                    }
-
                     if (catchUpFlag)
                     {
                         debugDisplay.text = "catchUp";
@@ -281,8 +299,12 @@ public class VRHandControlGoGo : MonoBehaviour
                         {
                             catchUpFlag = false;
                             catchUpRAM = Vector3.zero;
-                            catchUpFrameCounter = catchUpFrameCounterMax;
+                            catchUpFrameCounter = 30;
+
+                            debugDisplay.text = "no catchUp";
                         }
+
+                        prevOffset_Local = VRHandTwinPosOffset_Local;
                     }
 
                     OffsetRAM = Vector3.zero;
@@ -302,10 +324,20 @@ public class VRHandControlGoGo : MonoBehaviour
                 }
             }
         }
-        else
+    }
+
+    private void recordLast6HandPos()
+    {
+        // If the list is full, remove the oldest value from the queue and list
+        if (DynamicArmPosRecordTempQueue.Count >= 6)
         {
-            OffsetRAM = Vector3.zero;
+            Vector3 oldestValue = DynamicArmPosRecordTempQueue.Dequeue();
+            DynamicArmPosRecordTempList.Remove(oldestValue);
         }
+
+        // Add the latest value to the queue and list
+        DynamicArmPosRecordTempQueue.Enqueue(this.transform.position);
+        DynamicArmPosRecordTempList.Add(this.transform.position);
     }
 
     private void sphereGoGoInteraction()

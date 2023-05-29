@@ -147,6 +147,9 @@ public class MagicHandControl : MonoBehaviour
     private bool robotMoveFlag = false;
     public GameObject PortalFlyingStartPoint;
 
+    public GameObject breakText;
+    private bool InExperimentRestFlag = false;
+
     IEnumerator delayStart()
     {
         while (true)
@@ -744,7 +747,29 @@ public class MagicHandControl : MonoBehaviour
 
     private void afterHandCollision()
     {
-        if ((dataPointTouched & !prevDataPointTouched) | startInitialPoint)
+        if (currentOrderIndex == 10 | currentOrderIndex == 20)
+        {
+            if (!InExperimentRestFlag)
+            {
+                // add time stamp
+                if (experimentStage == 1)
+                {
+                    timeList.Add(Time.time);
+                }
+            }
+
+            InExperimentRestFlag = true;
+
+            breakText.SetActive(true);
+        }
+        else
+        {
+            InExperimentRestFlag = false;
+
+            breakText.SetActive(false);
+        }
+
+        if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
         {
             startInitialPoint = false;
 
@@ -1020,74 +1045,80 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
         sw.WriteLine(" ");
 
-        sw.WriteLine("Index_No.     Position.x      Position.y      Position.z ");
+        sw.WriteLine("Index_No. Position.x Position.y Position.z Time_Stamp Distance");
         foreach (int index in trajectoryDict.Keys)
         {
-            foreach (Vector3 pos in trajectoryDict[index])
+            for (int i = 0; i < trajectoryDict[index].Count; i++)
             {
-                sw.WriteLine(index.ToString() + "      " + 
-                                pos.x + "      " +
-                                pos.y + "      " +
-                                pos.z);
+                Vector3 pos = trajectoryDict[index][i];
+                float t = trajectoryTimeStampDict[index][i];
+                float d = trajectoryDistanceDict[index][i];
+
+                string s = index.ToString() + " " + 
+                            pos.x + " " + pos.y + " " + pos.z + " " +
+                            t.ToString() + " " +
+                            d.ToString();
+
+                sw.WriteLine(s);
             }
         }
         sw.WriteLine(" ");
 
         sw.Close();
 
-        // hand time stamp
-        string fileName1 = "Linear GoGo Hand Trajectory Time Stamp" + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
-        string saveFileName1 = "Assets/RawData/" + fileName1 + ".txt";
+        //// hand time stamp
+        //string fileName1 = "Linear GoGo Hand Trajectory Time Stamp " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        //string saveFileName1 = "Assets/RawData/" + fileName1 + ".txt";
 
-        while (File.Exists(saveFileName1))
-        {
-            duplicateFileIndex++;
-            saveFileName1 = "Assets/RawData/" + fileName1 + "_D" + duplicateFileIndex.ToString() + ".txt";
-        }
+        //while (File.Exists(saveFileName1))
+        //{
+        //    duplicateFileIndex++;
+        //    saveFileName1 = "Assets/RawData/" + fileName1 + "_D" + duplicateFileIndex.ToString() + ".txt";
+        //}
 
-        StreamWriter sw1 = new StreamWriter(saveFileName1);
+        //StreamWriter sw1 = new StreamWriter(saveFileName1);
 
-        sw1.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
-        sw1.WriteLine(" ");
+        //sw1.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
+        //sw1.WriteLine(" ");
 
-        sw1.WriteLine("Index_No.     Time_Stamp"); // Time Stamp
-        foreach (int index in trajectoryTimeStampDict.Keys)
-        {
-            foreach (float t in trajectoryTimeStampDict[index])
-            {
-                sw1.WriteLine(index.ToString() + "      " + t.ToString());
-            }
-        }
-        sw1.WriteLine(" ");
+        //sw1.WriteLine("Index_No.     Time_Stamp"); // Time Stamp
+        //foreach (int index in trajectoryTimeStampDict.Keys)
+        //{
+        //    foreach (float t in trajectoryTimeStampDict[index])
+        //    {
+        //        sw1.WriteLine(index.ToString() + "      " + t.ToString());
+        //    }
+        //}
+        //sw1.WriteLine(" ");
 
-        sw1.Close();
+        //sw1.Close();
 
-        // hand target distance
-        string fileName2 = "Linear GoGo Hand Trajectory Distance" + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
-        string saveFileName2 = "Assets/RawData/" + fileName2 + ".txt";
+        //// hand target distance
+        //string fileName2 = "Linear GoGo Hand Trajectory Distance " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
+        //string saveFileName2 = "Assets/RawData/" + fileName2 + ".txt";
 
-        while (File.Exists(saveFileName2))
-        {
-            duplicateFileIndex++;
-            saveFileName2 = "Assets/RawData/" + fileName2 + "_D" + duplicateFileIndex.ToString() + ".txt";
-        }
+        //while (File.Exists(saveFileName2))
+        //{
+        //    duplicateFileIndex++;
+        //    saveFileName2 = "Assets/RawData/" + fileName2 + "_D" + duplicateFileIndex.ToString() + ".txt";
+        //}
 
-        StreamWriter sw2 = new StreamWriter(saveFileName2);
+        //StreamWriter sw2 = new StreamWriter(saveFileName2);
 
-        sw2.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
-        sw2.WriteLine(" ");
+        //sw2.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
+        //sw2.WriteLine(" ");
 
-        sw2.WriteLine("Index_No.    Distance"); // Distance
-        foreach (int index in trajectoryDistanceDict.Keys)
-        {
-            foreach (float d in trajectoryDistanceDict[index])
-            {
-                sw2.WriteLine(index.ToString() + "      " + d.ToString());
-            }
-        }
-        sw2.WriteLine(" ");
+        //sw2.WriteLine("Index_No.    Distance"); // Distance
+        //foreach (int index in trajectoryDistanceDict.Keys)
+        //{
+        //    foreach (float d in trajectoryDistanceDict[index])
+        //    {
+        //        sw2.WriteLine(index.ToString() + "      " + d.ToString());
+        //    }
+        //}
+        //sw2.WriteLine(" ");
 
-        sw2.Close();
+        //sw2.Close();
     }
 }
 
