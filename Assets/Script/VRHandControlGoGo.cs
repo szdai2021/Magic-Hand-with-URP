@@ -140,8 +140,8 @@ public class VRHandControlGoGo : MonoBehaviour
         {
             if ((int)methodSwitch == 3)
             {
-                VRHandTwin.transform.position = this.transform.position;
-                VRHandTwin.transform.rotation = this.transform.rotation;
+                //VRHandTwin.transform.position = this.transform.position;
+                //VRHandTwin.transform.rotation = this.transform.rotation;
             }
             else
             {
@@ -262,7 +262,13 @@ public class VRHandControlGoGo : MonoBehaviour
                 {
                     normal = Vector3.Normalize(this.transform.position - tempPosRecorder);
 
-                    OffsetRAM = Vector3.Distance(tempPosRecorder, this.transform.position) * normal * testScale;
+                    //float s = 30000000000 * Mathf.Pow(Mathf.Abs(Vector3.Distance(tempPosRecorder, this.transform.position)), 3);
+
+                    OffsetRAM = Vector3.Distance(tempPosRecorder, this.transform.position) * normal * testScale;//s;
+
+                    //VRHandTwinPosOffset_Local += OffsetRAM;
+
+                    //OffsetRAM = Vector3.zero;
 
                     if (Vector3.Distance(prevHandPos, this.transform.position) > DynamicArmOutThreshold)
                     {

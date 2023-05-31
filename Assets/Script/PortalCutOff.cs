@@ -67,35 +67,30 @@ public class PortalCutOff : MonoBehaviour
 
                 VRArm.GetComponent<VRHandDisplay>().hideVRHand = true;
                 VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = false;
-            }
 
-            if (checkBox.bounds.Contains(VRHand.transform.position))
-            {
-                // hand portal cut off
-                (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHand.transform);
-                (HandHullClone.transform.position, HandHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHandHull.transform);
-
-                HandHullClone.transform.localScale = new Vector3(resizeScale, resizeScale, resizeScale);
-
-                if (throughPortal)
+                if (checkBox.bounds.Contains(VRHand.transform.position))
                 {
-                    VRHandTwin.transform.localScale = new Vector3(resizeScale, resizeScale, resizeScale);
-                }
-                else
-                {
-                    VRHandTwin.transform.localScale = Vector3.one;
-                }
+                    // hand portal cut off
+                    (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHand.transform);
+                    (HandHullClone.transform.position, HandHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRHandHull.transform);
 
-                // arm portal cut off
-                (VRArmClone.transform.position, VRArmClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRArm.transform);
-                (ArmHullClone.transform.position, ArmHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRArmHull.transform);
+                    HandHullClone.transform.localScale = new Vector3(resizeScale, resizeScale, resizeScale);
 
-                portalHandPosControl();
-            }
-            else
-            {
-                //VRArm.GetComponent<VRHandDisplay>().hideVRHand = false;
-                //VRArmClone.GetComponent<VRHandDisplay>().hideVRHand = true;
+                    if (throughPortal)
+                    {
+                        VRHandTwin.transform.localScale = new Vector3(resizeScale, resizeScale, resizeScale);
+                    }
+                    else
+                    {
+                        VRHandTwin.transform.localScale = Vector3.one;
+                    }
+
+                    // arm portal cut off
+                    (VRArmClone.transform.position, VRArmClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRArm.transform);
+                    (ArmHullClone.transform.position, ArmHullClone.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(portal1PlaceHolder.transform, portal2PlaceHolder.transform, VRArmHull.transform);
+
+                    portalHandPosControl();
+                }
             }
         }
     }

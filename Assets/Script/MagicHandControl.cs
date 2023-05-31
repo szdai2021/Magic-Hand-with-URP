@@ -150,20 +150,22 @@ public class MagicHandControl : MonoBehaviour
     public GameObject breakText;
     private bool InExperimentRestFlag = false;
 
+    private bool prevDynamicFlag = false;
+
     IEnumerator delayStart()
     {
         while (true)
         {
             if (startAnimationFlag)
             {
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(0.05f);
 
                 startAnimation();
 
                 startAnimationFlag = false;
             }
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.05f);
         }
     }
 
@@ -435,30 +437,34 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
 
-            if (prev_gestureDetection == true & current_gestureDetection == false & !animatorPortal.GetBool("start flying"))
-            {
-                setAnimationStartingPos();
+            //if (prev_gestureDetection == true & current_gestureDetection == false & !animatorPortal.GetBool("start flying"))
+            //{
+            //    setAnimationStartingPos();
 
-                startAnimationFlag = true;
-            }
+            //    startAnimationFlag = true;
+            //}
 
-            if (prev_gestureDetection == false & current_gestureDetection == true)
-            {
-                resetAnimation();
-            }
+            //if (prev_gestureDetection == false & current_gestureDetection == true)
+            //{
+            //    resetAnimation();
+            //}
 
             // start animation when in slow movement mode
-            if (VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag)
+            if (VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag & !prevDynamicFlag)
             {
                 setAnimationStartingPos();
 
                 startAnimationFlag = true;
+                //startAnimation();
             }
 
-            if (!VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag)
+            if (!VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag & prevDynamicFlag |
+                prev_gestureDetection == false & current_gestureDetection == true) // reset the animation
             {
                 resetAnimation();
             }
+
+            prevDynamicFlag = VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag;
 
             // robot move
             if (robotMoveFlag)
@@ -493,7 +499,7 @@ public class MagicHandControl : MonoBehaviour
                 VR_Hand_Control.posDetectionLock = false;
             }
 
-            if (touchDetection.bounds.Contains(sphereParent.transform.GetChild(0).position))
+            if (touchDetection.bounds.Contains(sphereParent.transform.GetChild(0).position) & !current_gestureDetection)
             {
                 touchFrameCounter += 1;
             }
