@@ -104,16 +104,13 @@ public class MagicHandControl : MonoBehaviour
 
     public GameObject cameraPoint;
 
-    public Animator animator;
-    public AnimationClip clip_flying;
     public GameObject animationObject;
 
-    public Animator animatorPortal;
-    public AnimationClip clip_flying_portal;
     public GameObject animationObjectPortal;
 
     public GameObject stopPlane;
     private bool startAnimationFlag = false;
+    private bool resetAnimationFlag = false;
 
     public GameObject projectedPoint;
     private int projectionPlaneIndex = 1;
@@ -152,22 +149,14 @@ public class MagicHandControl : MonoBehaviour
 
     private bool prevDynamicFlag = false;
 
-    IEnumerator delayStart()
-    {
-        while (true)
-        {
-            if (startAnimationFlag)
-            {
-                yield return new WaitForSeconds(0.05f);
+    public bool inPortalLookUpFlag = false;
+    public GameObject mainCamera;
+    public GameObject portalOnCameraPlaceholder;
 
-                startAnimation();
+    private Vector3 InPortalPos = new Vector3(0.271f,0.43149f,-0.039f);
+    private Vector3 InPortalRotation = new Vector3(0, 180, 0);
 
-                startAnimationFlag = false;
-            }
-
-            yield return new WaitForSeconds(0.05f);
-        }
-    }
+    private string currentStateName;
 
     private void Start()
     {
@@ -194,10 +183,6 @@ public class MagicHandControl : MonoBehaviour
         trainingOrder.Add(311);
 
         rotationReference = Camera.transform.rotation;
-
-        //startPoint.SetActive(false);
-
-        StartCoroutine(delayStart());
     }
 
     // Update is called once per frame
@@ -369,6 +354,8 @@ public class MagicHandControl : MonoBehaviour
                     ArmRender.GetComponent<VRHandArmRender>().normalFlag = true;
                 }
 
+                inPortalLookAt();
+
                 break;
             case 3: // portal control + robot
                 ArmRender.enable = true;
@@ -388,6 +375,9 @@ public class MagicHandControl : MonoBehaviour
                 {
                     ArmRender.GetComponent<VRHandArmRender>().normalFlag = true;
                 }
+
+                inPortalLookAt();
+
                 break;
             default: // magic hand control
                 ArmRender.enable = false;
@@ -448,21 +438,6 @@ public class MagicHandControl : MonoBehaviour
             //{
             //    resetAnimation();
             //}
-
-            // start animation when in slow movement mode
-            if (VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag & !prevDynamicFlag)
-            {
-                setAnimationStartingPos();
-
-                startAnimationFlag = true;
-                //startAnimation();
-            }
-
-            if (!VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag & prevDynamicFlag |
-                prev_gestureDetection == false & current_gestureDetection == true) // reset the animation
-            {
-                resetAnimation();
-            }
 
             prevDynamicFlag = VRHand.GetComponent<VRHandControlGoGo>().DynamicFlag;
 
@@ -856,91 +831,17 @@ public class MagicHandControl : MonoBehaviour
 
             //if (currentOrderIndex + 1 >= orderInUse.Count)
             //{
-                
+
             //}
             //else
             //{
             //    currentOrderIndex += 1;
             //}
+
+            resetAnimationFlag = true;
         }
 
         prevDataPointTouched = dataPointTouched;
-    }
-
-    private void setAnimationStartingPos()
-    {
-        if (Scenario_No == 3 | Scenario_No == 4)
-        {
-            // Get the position of the GameObject
-            Vector3 currentPosition = portal2PlaceHolder.transform.parent.parent.localPosition;
-
-            // Update the keyframe at the specified frame index with the current position
-            Keyframe keyframeX = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.x);
-            Keyframe keyframeY = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.y);
-            Keyframe keyframeZ = new Keyframe(clip_flying_portal.frameRate * 0, currentPosition.z);
-
-            Keyframe keyframeX1 = new Keyframe(clip_flying_portal.frameRate * 1 / 60, 0.395f);
-            Keyframe keyframeY1 = new Keyframe(clip_flying_portal.frameRate * 1 / 60, 0.4315f);
-            Keyframe keyframeZ1 = new Keyframe(clip_flying_portal.frameRate * 1 / 60, -0.398f);
-
-            AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
-            AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
-            AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
-
-            clip_flying_portal.SetCurve(animationObjectPortal.transform.parent.name + "/" + animationObjectPortal.name, typeof(Transform), "localPosition.x", curveX);
-            clip_flying_portal.SetCurve(animationObjectPortal.transform.parent.name + "/" + animationObjectPortal.name, typeof(Transform), "localPosition.y", curveY);
-            clip_flying_portal.SetCurve(animationObjectPortal.transform.parent.name + "/" + animationObjectPortal.name, typeof(Transform), "localPosition.z", curveZ);
-        }
-        else
-        {
-            // Get the position of the GameObject
-            Vector3 currentPosition = cameraPoint.transform.position;
-
-            // Update the keyframe at the specified frame index with the current position
-            Keyframe keyframeX = new Keyframe(clip_flying.frameRate * 0, currentPosition.x);
-            Keyframe keyframeY = new Keyframe(clip_flying.frameRate * 0, currentPosition.y);
-            Keyframe keyframeZ = new Keyframe(clip_flying.frameRate * 0, currentPosition.z);
-
-            Keyframe keyframeX1 = new Keyframe(clip_flying.frameRate * 1 / 60, -0.793f);
-            Keyframe keyframeY1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.398f);
-            Keyframe keyframeZ1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.48f);
-
-            AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
-            AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
-            AnimationCurve curveZ = new AnimationCurve(keyframeZ, keyframeZ1);
-
-            clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.x", curveX);
-            clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.y", curveY);
-            clip_flying.SetCurve(animationObject.name, typeof(Transform), "localPosition.z", curveZ);
-        }
-    }
-
-    private void startAnimation()
-    {
-        if (Scenario_No == 3 | Scenario_No == 4)
-        {
-            animatorPortal.SetTrigger("start flying");
-            animatorPortal.ResetTrigger("reset");
-        }
-        else
-        {
-            animator.SetTrigger("start flying");
-            animator.ResetTrigger("reset");
-        }
-    }
-
-    private void resetAnimation()
-    {
-        if (Scenario_No == 3 | Scenario_No == 4)
-        {
-            animatorPortal.SetTrigger("reset");
-            animatorPortal.ResetTrigger("start flying");
-        }
-        else
-        {
-            animator.SetTrigger("reset");
-            animator.ResetTrigger("start flying");
-        }
     }
 
     private void rearrangeOrder()
@@ -1125,6 +1026,23 @@ public class MagicHandControl : MonoBehaviour
         //sw2.WriteLine(" ");
 
         //sw2.Close();
+    }
+
+    private void inPortalLookAt()
+    {
+        if (inPortalLookUpFlag)
+        {
+            if (current_gestureDetection)
+            {
+                animationObjectPortal.transform.position = portalOnCameraPlaceholder.transform.position;
+                animationObjectPortal.transform.rotation = portalOnCameraPlaceholder.transform.rotation;
+            }
+            else
+            {
+                animationObjectPortal.transform.localPosition = InPortalPos;
+                animationObjectPortal.transform.localEulerAngles = InPortalRotation;
+            }
+        }
     }
 }
 
