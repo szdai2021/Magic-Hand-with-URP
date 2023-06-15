@@ -55,6 +55,11 @@ public class DebuggerTemplateEditor : Editor
         {
             myScript.safetyDistanceTest();
         }
+
+        if (GUILayout.Button("Start 10s pause"))
+        {
+            myScript.tenSecondsPauseStart();
+        }
     }
 
 }

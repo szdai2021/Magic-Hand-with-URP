@@ -752,6 +752,8 @@ public class MagicHandControl : MonoBehaviour
 
         if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
         {
+            animationObjectPortal.SetActive(false);
+
             startInitialPoint = false;
 
             // add time stamp
@@ -1034,6 +1036,8 @@ public class MagicHandControl : MonoBehaviour
         {
             if (current_gestureDetection)
             {
+                animationObjectPortal.SetActive(true);
+
                 animationObjectPortal.transform.position = portalOnCameraPlaceholder.transform.position;
                 animationObjectPortal.transform.rotation = portalOnCameraPlaceholder.transform.rotation;
             }

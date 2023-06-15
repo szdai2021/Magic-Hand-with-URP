@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class DebuggerTemplate : MonoBehaviour
 {
@@ -36,6 +37,8 @@ public class DebuggerTemplate : MonoBehaviour
 
     private bool safetyTestFlag = false;
 
+    private bool tenSecondsPause = false;
+
     IEnumerator robotSafetyTestDelayer()
     {
         while (true)
@@ -67,12 +70,32 @@ public class DebuggerTemplate : MonoBehaviour
         }
     }
 
+    IEnumerator tenSecondsPauseDelayer()
+    {
+        while (true)
+        {
+            if (tenSecondsPause)
+            {
+                yield return new WaitForSeconds(10f);
+
+                EditorApplication.isPaused = true;
+
+                tenSecondsPause = false;
+            }
+            else
+            {
+                yield return new WaitForSeconds(3f);
+            }
+        }
+    }
+
     private void Start()
     {
         sliderReference = PPR.Touch_Point;
         robotEndEffector = PPR.TCP_Center;
 
         StartCoroutine(robotSafetyTestDelayer());
+        StartCoroutine(tenSecondsPauseDelayer());
     }
 
     public void testRelativePosRotChange()
@@ -185,6 +208,11 @@ public class DebuggerTemplate : MonoBehaviour
     public void safetyDistanceTest()
     {
         safetyTestFlag = true;
+    }
+
+    public void tenSecondsPauseStart()
+    {
+        tenSecondsPause = true;
     }
 }
 
