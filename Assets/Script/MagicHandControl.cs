@@ -156,7 +156,7 @@ public class MagicHandControl : MonoBehaviour
     private Vector3 InPortalPos = new Vector3(0.271f,0.43149f,-0.039f);
     private Vector3 InPortalRotation = new Vector3(0, 180, 0);
 
-    private string currentStateName;
+    private string currentStateName; 
 
     private void Start()
     {
@@ -181,6 +181,12 @@ public class MagicHandControl : MonoBehaviour
         trainingOrder.Add(239);
         trainingOrder.Add(427);
         trainingOrder.Add(311);
+        trainingOrder.Add(1000);
+        trainingOrder.Add(1230);
+        trainingOrder.Add(2031);
+        trainingOrder.Add(592);
+        trainingOrder.Add(2560);
+        trainingOrder.Add(1830);
 
         rotationReference = Camera.transform.rotation;
     }
@@ -752,6 +758,7 @@ public class MagicHandControl : MonoBehaviour
 
         if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
         {
+            VR_Hand_Control.InRangePos = new List<Vector3>();
             animationObjectPortal.SetActive(false);
 
             startInitialPoint = false;

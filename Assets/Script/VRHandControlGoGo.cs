@@ -113,6 +113,9 @@ public class VRHandControlGoGo : MonoBehaviour
 
     public TextMeshPro debugDisplay;
 
+    public List<Vector3> InRangePos = new List<Vector3>();
+
+    public HapticColorIndicator HCI;
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
@@ -185,8 +188,23 @@ public class VRHandControlGoGo : MonoBehaviour
 
                 if (gestureDetection)
                 {
+                    if (HCI.InRangeFlag)
+                    {
+                        InRangePos.Add(VRHandTwin.transform.position);
+                    }
+
                     selectedPortal.transform.position = VRHandTwin.transform.position;
                 }
+                else
+                {
+                    if (InRangePos.Count > 2)
+                    {
+                        selectedPortal.transform.position = InRangePos[InRangePos.Count-2];
+                    }
+                    
+                }
+
+                debugDisplay.text = InRangePos.ToString();
 
                 break;
             default:

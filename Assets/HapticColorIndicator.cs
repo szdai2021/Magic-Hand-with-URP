@@ -19,6 +19,8 @@ public class HapticColorIndicator : MonoBehaviour
 
     public bool enable = false;
 
+    public bool InRangeFlag = false;
+
     // Update is called once per frame
     void Update()
     {
@@ -32,10 +34,14 @@ public class HapticColorIndicator : MonoBehaviour
             if (RobotEndeffectorCollider.GetComponent<Collider>().bounds.Contains(TempEndEffector.transform.position))
             {
                 indicator.color = Color.red;
+
+                InRangeFlag = true;
             }
             else
             {
                 indicator.color = Color.white;
+
+                InRangeFlag = false;
             }
 
         }
