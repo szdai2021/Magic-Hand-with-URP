@@ -197,9 +197,9 @@ public class VRHandControlGoGo : MonoBehaviour
                 }
                 else
                 {
-                    if (InRangePos.Count > 2)
+                    if (InRangePos.Count > 10)
                     {
-                        selectedPortal.transform.position = InRangePos[InRangePos.Count-2];
+                        selectedPortal.transform.position = InRangePos[InRangePos.Count-10];
                     }
                     
                 }

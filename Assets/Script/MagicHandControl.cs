@@ -78,9 +78,15 @@ public class MagicHandControl : MonoBehaviour
     private int currentOrderIndex = -1;
     private List<float> timeList = new List<float>();
     private List<Vector3> posList = new List<Vector3>();
+    private List<Vector3> handList = new List<Vector3>();
+    private List<Vector3> elbowList = new List<Vector3>();
+    private List<Vector3> shoulderList = new List<Vector3>();
     private List<float> TimeStampList = new List<float>();
     private List<float> DistanceList = new List<float>();
     private Dictionary<int, List<Vector3>> trajectoryDict = new Dictionary<int, List<Vector3>>();
+    private Dictionary<int, List<Vector3>> handDict = new Dictionary<int, List<Vector3>>();
+    private Dictionary<int, List<Vector3>> elbowDict = new Dictionary<int, List<Vector3>>();
+    private Dictionary<int, List<Vector3>> shoulderDict = new Dictionary<int, List<Vector3>>();
     private Dictionary<int, List<float>> trajectoryTimeStampDict = new Dictionary<int, List<float>>();
     private Dictionary<int, List<float>> trajectoryDistanceDict = new Dictionary<int, List<float>>();
     private float timeStamp;
@@ -153,10 +159,13 @@ public class MagicHandControl : MonoBehaviour
     public GameObject mainCamera;
     public GameObject portalOnCameraPlaceholder;
 
-    private Vector3 InPortalPos = new Vector3(0.271f,0.43149f,-0.039f);
+    private Vector3 InPortalPos = new Vector3(0.271f,0.313f,-0.039f);
     private Vector3 InPortalRotation = new Vector3(0, 180, 0);
 
-    private string currentStateName; 
+    private string currentStateName;
+
+    public GameObject elbowVICON;
+    public GameObject shoulderVICON;
 
     private void Start()
     {
@@ -252,9 +261,15 @@ public class MagicHandControl : MonoBehaviour
 
                     timeList = new List<float>();
                     posList = new List<Vector3>();
+                    handList = new List<Vector3>();
+                    elbowList = new List<Vector3>();
+                    shoulderList = new List<Vector3>();
                     DistanceList = new List<float>();
                     TimeStampList = new List<float>();
                     trajectoryDict = new Dictionary<int, List<Vector3>>();
+                    handDict = new Dictionary<int, List<Vector3>>();
+                    elbowDict = new Dictionary<int, List<Vector3>>();
+                    shoulderDict = new Dictionary<int, List<Vector3>>();
                     trajectoryTimeStampDict = new Dictionary<int, List<float>>();
                     trajectoryDistanceDict = new Dictionary<int, List<float>>();
                     break;
@@ -263,6 +278,9 @@ public class MagicHandControl : MonoBehaviour
                     orderInUse = experimentOrder;
 
                     posList.Add(VRHandTwin.transform.position);
+                    handList.Add(VRHand.transform.position);
+                    elbowList.Add(elbowVICON.transform.position);
+                    shoulderList.Add(shoulderVICON.transform.position);
                     DistanceList.Add(Vector3.Distance(VRHandTwin.transform.position, currentDataPoint.transform.position));
                     TimeStampList.Add(Time.time);
                     
@@ -531,10 +549,20 @@ public class MagicHandControl : MonoBehaviour
 
     private void resetDataList()
     {
-        trajectoryDict = new Dictionary<int, List<Vector3>>();
-        trajectoryDistanceDict = new Dictionary<int, List<float>>();
-        trajectoryTimeStampDict = new Dictionary<int, List<float>>();
+
         timeList = new List<float>();
+        posList = new List<Vector3>();
+        handList = new List<Vector3>();
+        elbowList = new List<Vector3>();
+        shoulderList = new List<Vector3>();
+        DistanceList = new List<float>();
+        TimeStampList = new List<float>();
+        trajectoryDict = new Dictionary<int, List<Vector3>>();
+        handDict = new Dictionary<int, List<Vector3>>();
+        elbowDict = new Dictionary<int, List<Vector3>>();
+        shoulderDict = new Dictionary<int, List<Vector3>>();
+        trajectoryTimeStampDict = new Dictionary<int, List<float>>();
+        trajectoryDistanceDict = new Dictionary<int, List<float>>();
     }
 
     private void resetRobotPosInExperiment()
@@ -734,26 +762,29 @@ public class MagicHandControl : MonoBehaviour
 
     private void afterHandCollision()
     {
-        if (currentOrderIndex == 10 | currentOrderIndex == 20)
+        if (experimentStage == 1)
         {
-            if (!InExperimentRestFlag)
+            if (currentOrderIndex == 10 | currentOrderIndex == 20)
             {
-                // add time stamp
-                if (experimentStage == 1)
+                if (!InExperimentRestFlag)
                 {
-                    timeList.Add(Time.time);
+                    // add time stamp
+                    if (experimentStage == 1)
+                    {
+                        timeList.Add(Time.time);
+                    }
                 }
+
+                InExperimentRestFlag = true;
+
+                breakText.SetActive(true);
             }
+            else
+            {
+                InExperimentRestFlag = false;
 
-            InExperimentRestFlag = true;
-
-            breakText.SetActive(true);
-        }
-        else
-        {
-            InExperimentRestFlag = false;
-
-            breakText.SetActive(false);
+                breakText.SetActive(false);
+            }
         }
 
         if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
@@ -821,10 +852,16 @@ public class MagicHandControl : MonoBehaviour
                 if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
                 {
                     trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+                    handDict.Add(orderInUse[currentOrderIndex], handList);
+                    elbowDict.Add(orderInUse[currentOrderIndex], elbowList);
+                    shoulderDict.Add(orderInUse[currentOrderIndex], shoulderList);
                     trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
                     trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
 
                     posList = new List<Vector3>();
+                    handList = new List<Vector3>();
+                    elbowList = new List<Vector3>();
+                    shoulderList = new List<Vector3>();
                     DistanceList = new List<float>();
                     TimeStampList = new List<float>();
                 }
@@ -961,17 +998,23 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
         sw.WriteLine(" ");
 
-        sw.WriteLine("Index_No. Position.x Position.y Position.z Time_Stamp Distance");
+        sw.WriteLine("Index_No. VRHandPos.x VRHandPos.y VRHandPos.z HandPos.x HandPos.y HandPos.z ElbowPos.x ElbowPos.y ElbowPos.z ShoulderPos.x ShoulderPos.y ShoulderPos.z Time_Stamp Distance");
         foreach (int index in trajectoryDict.Keys)
         {
             for (int i = 0; i < trajectoryDict[index].Count; i++)
             {
                 Vector3 pos = trajectoryDict[index][i];
+                Vector3 handPos = handDict[index][i];
+                Vector3 elbowPos = elbowDict[index][i];
+                Vector3 shoulderPos = shoulderDict[index][i];
                 float t = trajectoryTimeStampDict[index][i];
                 float d = trajectoryDistanceDict[index][i];
 
                 string s = index.ToString() + " " + 
                             pos.x + " " + pos.y + " " + pos.z + " " +
+                            handPos.x + " " + handPos.y + " " + handPos.z + " " +
+                            elbowPos.x + " " + elbowPos.y + " " + elbowPos.z + " " +
+                            shoulderPos.x + " " + shoulderPos.y + " " + shoulderPos.z + " " +
                             t.ToString() + " " +
                             d.ToString();
 
@@ -1041,7 +1084,7 @@ public class MagicHandControl : MonoBehaviour
     {
         if (inPortalLookUpFlag)
         {
-            if (current_gestureDetection)
+            if (current_gestureDetection & !unityClient.homePosition)
             {
                 animationObjectPortal.SetActive(true);
 
