@@ -76,7 +76,7 @@ public class MagicHandControl : MonoBehaviour
     private List<int> experimentOrder = new List<int>();
     private List<int> orderInUse = new List<int>();
     private int currentOrderIndex = -1;
-    private List<float> timeList = new List<float>();
+    private Dictionary<int, float> timeList = new Dictionary<int, float>();
     private List<Vector3> posList = new List<Vector3>();
     private List<Vector3> handList = new List<Vector3>();
     private List<Vector3> elbowList = new List<Vector3>();
@@ -138,8 +138,6 @@ public class MagicHandControl : MonoBehaviour
     public bool printOrderFlag = false;
     public TextMeshPro titleDisplay;
 
-    public GameObject far, close;
-
     public Collider resetPosCollider;
 
     private float FarDistance, CloseDistance;
@@ -159,13 +157,13 @@ public class MagicHandControl : MonoBehaviour
     public GameObject mainCamera;
     public GameObject portalOnCameraPlaceholder;
 
-    private Vector3 InPortalPos = new Vector3(0.271f,0.313f,-0.039f);
+    private Vector3 InPortalPos = new Vector3(0.408f,0.313f,-0.039f);
     private Vector3 InPortalRotation = new Vector3(0, 180, 0);
-
-    private string currentStateName;
 
     public GameObject elbowVICON;
     public GameObject shoulderVICON;
+
+    public Material indicatorM;
 
     private void Start()
     {
@@ -173,9 +171,6 @@ public class MagicHandControl : MonoBehaviour
         p2 = planeNormalParent.transform.GetChild(1).position;
 
         normal = (p2 - p1).normalized;
-
-        FarDistance = Mathf.Abs(Vector3.Dot(normal, p1 - far.transform.position));
-        CloseDistance = Mathf.Abs(Vector3.Dot(normal, p1 - close.transform.position));
 
         pointOnPlane = p1;
 
@@ -259,7 +254,7 @@ public class MagicHandControl : MonoBehaviour
                     titleDisplay.text = "Training" + " " + currentOrderIndex.ToString();
                     orderInUse = trainingOrder;
 
-                    timeList = new List<float>();
+                    timeList = new Dictionary<int, float>();
                     posList = new List<Vector3>();
                     handList = new List<Vector3>();
                     elbowList = new List<Vector3>();
@@ -550,7 +545,7 @@ public class MagicHandControl : MonoBehaviour
     private void resetDataList()
     {
 
-        timeList = new List<float>();
+        timeList = new Dictionary<int, float>();
         posList = new List<Vector3>();
         handList = new List<Vector3>();
         elbowList = new List<Vector3>();
@@ -771,7 +766,7 @@ public class MagicHandControl : MonoBehaviour
                     // add time stamp
                     if (experimentStage == 1)
                     {
-                        timeList.Add(Time.time);
+                        timeList.Add(orderInUse[currentOrderIndex], Time.time);
                     }
                 }
 
@@ -791,13 +786,12 @@ public class MagicHandControl : MonoBehaviour
         {
             VR_Hand_Control.InRangePos = new List<Vector3>();
             animationObjectPortal.SetActive(false);
-
             startInitialPoint = false;
 
             // add time stamp
             if (experimentStage == 1)
             {
-                timeList.Add(Time.time);
+                timeList.Add(orderInUse[currentOrderIndex], Time.time);
             }
 
             if (currentDataPoint != null)
@@ -971,10 +965,10 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
         sw.WriteLine(" ");
 
-        sw.WriteLine("Time Taken");
-        foreach (var value in timeList)
+        sw.WriteLine("Index Time Taken");
+        foreach (int index in timeList.Keys)
         {
-            sw.WriteLine(value.ToString());
+            sw.WriteLine(index.ToString() + " " + timeList[index].ToString());
         }
         sw.WriteLine(" ");
 
@@ -1084,7 +1078,7 @@ public class MagicHandControl : MonoBehaviour
     {
         if (inPortalLookUpFlag)
         {
-            if (current_gestureDetection & !unityClient.homePosition)
+            if (current_gestureDetection)
             {
                 animationObjectPortal.SetActive(true);
 
@@ -1093,9 +1087,13 @@ public class MagicHandControl : MonoBehaviour
             }
             else
             {
-                animationObjectPortal.transform.localPosition = InPortalPos;
-                animationObjectPortal.transform.localEulerAngles = InPortalRotation;
+                if (indicatorM.color == Color.red)
+                {
+                    animationObjectPortal.transform.localPosition = InPortalPos;
+                    animationObjectPortal.transform.localEulerAngles = InPortalRotation;
+                }
             }
+            
         }
     }
 }

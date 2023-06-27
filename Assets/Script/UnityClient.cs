@@ -213,7 +213,7 @@ public class UnityClient : MonoBehaviour
 
         string cmd = packCMD(xi, yi, zi, rxi, ryi, rzi, acc, speed, btn_press, scenario, speedAdopt, angle1, angle2, angle3, angle4, angle5, angle6 + jointAngleBias_6, movementType, extra1, extra2, extra3, radius, interruptible, linearActuatorDistance: linearActuatorDistance);
 
-        if (zi < 0.15 & movementType < 3)
+        if (zi < 0.06 & movementType < 3)
         {
             print("Risk Alert: Robot position is too low");
         }
