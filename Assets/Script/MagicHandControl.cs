@@ -150,6 +150,7 @@ public class MagicHandControl : MonoBehaviour
 
     public GameObject breakText;
     private bool InExperimentRestFlag = false;
+    private bool PreInExperimentRestFlag = false;
 
     private bool prevDynamicFlag = false;
 
@@ -164,6 +165,26 @@ public class MagicHandControl : MonoBehaviour
     public GameObject shoulderVICON;
 
     public Material indicatorM;
+    public bool autoResume = false;
+    
+
+    IEnumerator threeSecondsPause()
+    {
+        while (true)
+        {
+            if (autoResume)
+            {
+                if (InExperimentRestFlag)
+                {
+                    yield return new WaitForSeconds(3f);
+
+                    startInitialPoint = true;
+                }
+            }
+            
+            yield return new WaitForSeconds(1f);
+        }
+    }
 
     private void Start()
     {
@@ -193,6 +214,8 @@ public class MagicHandControl : MonoBehaviour
         trainingOrder.Add(1830);
 
         rotationReference = Camera.transform.rotation;
+
+        StartCoroutine(threeSecondsPause());
     }
 
     // Update is called once per frame
@@ -766,7 +789,14 @@ public class MagicHandControl : MonoBehaviour
                     // add time stamp
                     if (experimentStage == 1)
                     {
-                        timeList.Add(orderInUse[currentOrderIndex], Time.time);
+                        if (timeList.ContainsKey(orderInUse[currentOrderIndex]))
+                        {
+                            timeList.Add(orderInUse[currentOrderIndex] + 2000000, Time.time);
+                        }
+                        else
+                        {
+                            timeList.Add(orderInUse[currentOrderIndex], Time.time);
+                        }
                     }
                 }
 
@@ -788,97 +818,111 @@ public class MagicHandControl : MonoBehaviour
             animationObjectPortal.SetActive(false);
             startInitialPoint = false;
 
-            // add time stamp
-            if (experimentStage == 1)
-            {
-                timeList.Add(orderInUse[currentOrderIndex], Time.time);
-            }
+            PreInExperimentRestFlag = InExperimentRestFlag;
 
-            if (currentDataPoint != null)
+            if (((currentOrderIndex == 10 | currentOrderIndex == 20) & PreInExperimentRestFlag) |
+                (currentOrderIndex != 10 & currentOrderIndex != 20) |
+                experimentStage == 0)
             {
-                currentDataPoint.GetComponent<SphereCollider>().enabled = false;
-
-                // remove the outline effect by deleting the second render material
-                if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
+                // add time stamp
+                if (experimentStage == 1)
                 {
-                    // Remove the second material from the materials array
-                    Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
-                    Array.Resize(ref materials, 1);
-                    currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
-                }
-            }
-
-            foreach (Transform g in sphereParentTwin.transform)
-            {
-                GameObject.Destroy(g.gameObject);
-            }
-
-            foreach (Transform g in sphereParent.transform)
-            {
-                GameObject.Destroy(g.gameObject);
-            }
-
-            if (currentOrderIndex < orderInUse.Count)
-            {
-                currentDataPoint = scatterParent.transform.GetChild(orderInUse[currentOrderIndex]).gameObject;
-
-                currentDataPoint.GetComponent<SphereCollider>().enabled = true;
-
-                if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length < 2)
-                {
-                    // add the outline effect as the second render material
-                    Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
-                    Array.Resize(ref materials, materials.Length + 1);
-                    materials[materials.Length - 1] = outline;
-                    currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+                    if (currentOrderIndex >= orderInUse.Count)
+                    {
+                        timeList.Add(999999999, Time.time);
+                    }
+                    else
+                    {
+                        if (timeList.ContainsKey(orderInUse[currentOrderIndex]))
+                        {
+                            timeList.Add(orderInUse[currentOrderIndex] + 1000000, Time.time);
+                        }
+                        else
+                        {
+                            timeList.Add(orderInUse[currentOrderIndex], Time.time);
+                        }
+                    }
                 }
 
-                GameObject newPoint1 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
-                newPoint1.transform.SetParent(sphereParentTwin.transform);
-                newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
-
-                GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
-                newPoint2.transform.SetParent(sphereParent.transform);
-                newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
-
-                newPoint1.transform.localPosition = newPoint2.transform.localPosition;
-
-                if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
+                if (currentDataPoint != null)
                 {
-                    trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
-                    handDict.Add(orderInUse[currentOrderIndex], handList);
-                    elbowDict.Add(orderInUse[currentOrderIndex], elbowList);
-                    shoulderDict.Add(orderInUse[currentOrderIndex], shoulderList);
-                    trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
-                    trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
+                    currentDataPoint.GetComponent<SphereCollider>().enabled = false;
 
-                    posList = new List<Vector3>();
-                    handList = new List<Vector3>();
-                    elbowList = new List<Vector3>();
-                    shoulderList = new List<Vector3>();
-                    DistanceList = new List<float>();
-                    TimeStampList = new List<float>();
+                    // remove the outline effect by deleting the second render material
+                    if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
+                    {
+                        // Remove the second material from the materials array
+                        Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+                        Array.Resize(ref materials, 1);
+                        currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+                    }
                 }
 
-                currentOrderIndex += 1;
+                foreach (Transform g in sphereParentTwin.transform)
+                {
+                    GameObject.Destroy(g.gameObject);
+                }
+
+                foreach (Transform g in sphereParent.transform)
+                {
+                    GameObject.Destroy(g.gameObject);
+                }
+
+                if (currentOrderIndex < orderInUse.Count)
+                {
+                    currentDataPoint = scatterParent.transform.GetChild(orderInUse[currentOrderIndex]).gameObject;
+
+                    currentDataPoint.GetComponent<SphereCollider>().enabled = true;
+
+                    if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length < 2)
+                    {
+                        // add the outline effect as the second render material
+                        Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+                        Array.Resize(ref materials, materials.Length + 1);
+                        materials[materials.Length - 1] = outline;
+                        currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+                    }
+
+                    GameObject newPoint1 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
+                    newPoint1.transform.SetParent(sphereParentTwin.transform);
+                    newPoint1.transform.GetComponent<MeshRenderer>().enabled = false;
+
+                    GameObject newPoint2 = Instantiate(dataPoint, currentDataPoint.transform.position, Quaternion.identity);
+                    newPoint2.transform.SetParent(sphereParent.transform);
+                    newPoint2.transform.GetComponent<MeshRenderer>().enabled = false;
+
+                    newPoint1.transform.localPosition = newPoint2.transform.localPosition;
+
+                    if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
+                    {
+                        trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+                        handDict.Add(orderInUse[currentOrderIndex], handList);
+                        elbowDict.Add(orderInUse[currentOrderIndex], elbowList);
+                        shoulderDict.Add(orderInUse[currentOrderIndex], shoulderList);
+                        trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
+                        trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
+
+                        posList = new List<Vector3>();
+                        handList = new List<Vector3>();
+                        elbowList = new List<Vector3>();
+                        shoulderList = new List<Vector3>();
+                        DistanceList = new List<float>();
+                        TimeStampList = new List<float>();
+                    }
+
+                    currentOrderIndex += 1;
+                }
+                else
+                {
+                    experimentStage += 1;
+
+                    currentOrderIndex = 0;
+                }
+
+                resetAnimationFlag = true;
             }
-            else
-            {
-                experimentStage += 1;
 
-                currentOrderIndex = 0;
-            }
-
-            //if (currentOrderIndex + 1 >= orderInUse.Count)
-            //{
-
-            //}
-            //else
-            //{
-            //    currentOrderIndex += 1;
-            //}
-
-            resetAnimationFlag = true;
+            InExperimentRestFlag = false;
         }
 
         prevDataPointTouched = dataPointTouched;
@@ -1087,7 +1131,7 @@ public class MagicHandControl : MonoBehaviour
             }
             else
             {
-                if (indicatorM.color == Color.red)
+                if (indicatorM.color == Color.red | Scenario_No == 3)
                 {
                     animationObjectPortal.transform.localPosition = InPortalPos;
                     animationObjectPortal.transform.localEulerAngles = InPortalRotation;
