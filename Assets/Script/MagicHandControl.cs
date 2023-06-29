@@ -166,7 +166,7 @@ public class MagicHandControl : MonoBehaviour
 
     public Material indicatorM;
     public bool autoResume = false;
-    
+    public AudioSource successGrab;
 
     IEnumerator threeSecondsPause()
     {
@@ -817,6 +817,7 @@ public class MagicHandControl : MonoBehaviour
             VR_Hand_Control.InRangePos = new List<Vector3>();
             animationObjectPortal.SetActive(false);
             startInitialPoint = false;
+            successGrab.Play();
 
             PreInExperimentRestFlag = InExperimentRestFlag;
 
