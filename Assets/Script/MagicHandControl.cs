@@ -1010,12 +1010,11 @@ public class MagicHandControl : MonoBehaviour
         sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
         sw.WriteLine(" ");
 
-        sw.WriteLine("Index Time Taken");
+        sw.WriteLine("Index TimeTaken");
         foreach (int index in timeList.Keys)
         {
             sw.WriteLine(index.ToString() + " " + timeList[index].ToString());
         }
-        sw.WriteLine(" ");
 
         sw.Close();
     }
@@ -1060,7 +1059,6 @@ public class MagicHandControl : MonoBehaviour
                 sw.WriteLine(s);
             }
         }
-        sw.WriteLine(" ");
 
         sw.Close();
 
