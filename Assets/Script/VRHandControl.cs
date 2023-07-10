@@ -81,6 +81,17 @@ public class VRHandControl : MonoBehaviour
 
     public UnityClient unity_client;
     public GameObject stopPlane;
+    public bool resetPosFlag = false;
+    public GameObject grappingDetectionArea;
+
+    public Material arrowIndicatorSlow;
+    public Material arrowIndicatorMiddle;
+    public Material arrowIndicatorFast;
+
+    private float C_min = 11.448f;
+    private float C_max = 21;
+
+    private Vector3 redirectionOffset = Vector3.zero;
 
     private void Start()
     {
@@ -92,7 +103,7 @@ public class VRHandControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local;
+        DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local + redirectionOffset;
         DWC2.transform.rotation = DWC1.transform.rotation * VRHandTwinRotOffset * TempRotationReference;
 
         if (((int)methodSwitch) == 3)
@@ -118,34 +129,34 @@ public class VRHandControl : MonoBehaviour
             DWC2.GetComponent<directionWheelControl>().posParent = selectedPortal;
             VRHandTwinPosOffset_Local = selectedPortal.transform.position - this.transform.position;
 
-            // raycast renderring
-            directionVector = frontSensor.transform.position - backSensor.transform.position;
-            ray = new Ray(backSensor.transform.position, directionVector.normalized);
+            //// raycast renderring
+            //directionVector = frontSensor.transform.position - backSensor.transform.position;
+            //ray = new Ray(backSensor.transform.position, directionVector.normalized);
 
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
-            {
-                Material m = lineRenderer.material;
+            //if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
+            //{
+            //    Material m = lineRenderer.material;
 
-                if (rotationGesture | gestureDetection) // render for either translation or the first time in rotation gesture
-                {
-                    lineRenderer.positionCount = 2;
-                    lineRenderer.SetPosition(0, ray.origin);
-                    lineRenderer.SetPosition(1, selectedPortal.transform.position);
-                }
+            //    if (rotationGesture | gestureDetection) // render for either translation or the first time in rotation gesture
+            //    {
+            //        lineRenderer.positionCount = 2;
+            //        lineRenderer.SetPosition(0, ray.origin);
+            //        lineRenderer.SetPosition(1, selectedPortal.transform.position);
+            //    }
 
-                if (gestureDetection)
-                {
-                    m.color = Color.red;
-                }
-                else if (rotationGesture)
-                {
-                    m.color = Color.blue;
-                }
-            }
-            else
-            {
-                lineRenderer.positionCount = 0;
-            }
+            //    if (gestureDetection)
+            //    {
+            //        m.color = Color.red;
+            //    }
+            //    else if (rotationGesture)
+            //    {
+            //        m.color = Color.blue;
+            //    }
+            //}
+            //else
+            //{
+            //    lineRenderer.positionCount = 0;
+            //}
 
             sphereDirecting();
 
@@ -204,16 +215,16 @@ public class VRHandControl : MonoBehaviour
                 }
                 sphereDirecting();
                 break;
-            case 3:
-                break;
             default:
-                centerDirecting();
+                
                 break;
         }
 
-        if (prevScenario != (int)methodSwitch)
+        if (prevScenario != (int)methodSwitch | resetPosFlag)
         {
             resetConfig();
+
+            resetPosFlag = false;
         }
 
         //if ()
@@ -249,7 +260,7 @@ public class VRHandControl : MonoBehaviour
         prevScenario = (int)methodSwitch;
     }
 
-    private void resetConfig()
+    public void resetConfig()
     {
         positionReference = Vector3.zero;
         RotationReference = Quaternion.identity;
@@ -258,6 +269,10 @@ public class VRHandControl : MonoBehaviour
         rotationGestureCounter = 0;
         prev_rotationGesture = false;
         prev_DWC1_posSyc = true;
+
+        VRHandTwinPosOffset_Local = Vector3.zero;
+        VRHandTwinRotOffset = Quaternion.identity;
+        redirectionOffset = Vector3.zero;
 
         VRHandTwin.transform.position = this.transform.position;
         VRHandTwin.transform.rotation = this.transform.rotation;
@@ -277,7 +292,7 @@ public class VRHandControl : MonoBehaviour
                 targetAreaCollider.gameObject.SetActive(false);
             }
 
-            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(this.transform.position))
+            if (!fixedPosDetectionMode | targetAreaCollider.bounds.Contains(this.transform.position) | gestureDetection)
             {
                 if (Vector3.Distance(palmCenter.transform.position, index.transform.position) < gestureThreshold &
                         Vector3.Distance(palmCenter.transform.position, ring.transform.position) < gestureThreshold &
@@ -298,10 +313,10 @@ public class VRHandControl : MonoBehaviour
                         grapTarget.SetActive(false);
                         grapTargetOnHand.SetActive(true);
 
-                        if (fixedPosDetectionMode & !unity_client.homePosition)
-                        {
-                            unity_client.initialPos();
-                        }
+                        //if (fixedPosDetectionMode & !unity_client.homePosition)
+                        //{
+                        //    unity_client.initialPos();
+                        //}
                     }
                 }
                 else
@@ -381,6 +396,8 @@ public class VRHandControl : MonoBehaviour
     {
         if (gestureDetection)
         {
+            grappingDetectionArea.SetActive(false);
+
             directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = false;
             DSC.posSyc = false;
 
@@ -390,9 +407,24 @@ public class VRHandControl : MonoBehaviour
             directionOrientation.transform.localPosition = palmCenter.transform.position - directionSphere.transform.position;
             directionArrow.transform.LookAt(directionOrientation.transform);
 
+            if (d <= C_min / 2)
+            {
+                changeAllChildrenMAterial(directionArrow.transform, arrowIndicatorSlow);
+            }
+            else if (d > C_min / 2 & d <= C_max)
+            {
+                changeAllChildrenMAterial(directionArrow.transform, arrowIndicatorMiddle);
+            }
+            else
+            {
+                changeAllChildrenMAterial(directionArrow.transform, arrowIndicatorFast);
+            }
+
             Vector3 stepChange = directionOrientation.transform.localPosition.normalized / 100 * d / 15;
 
-            stepChange *= sigmoidCurveFactor(Vector3.Distance(VRHandTwin.transform.position, this.transform.position));
+            //stepChange *= sigmoidCurveFactor(Vector3.Distance(VRHandTwin.transform.position, this.transform.position));
+
+            stepChange *= (float)logisticFunction(d);
 
             // stopping plane method - inactive
             //if (!stopPlane.transform.GetChild(2).GetComponent<BoxCollider>().bounds.Contains(VRHandTwin.transform.position))
@@ -404,8 +436,18 @@ public class VRHandControl : MonoBehaviour
         }
         else
         {
+            grappingDetectionArea.SetActive(true);
+
             directionArrow.transform.parent.GetComponent<directionWheelControl>().hide = true;
             DSC.posSyc = true;
+        }
+    }
+
+    private void changeAllChildrenMAterial(Transform parent, Material m)
+    {
+        foreach (Transform t in parent)
+        {
+            t.gameObject.GetComponent<MeshRenderer>().material = m;
         }
     }
 
@@ -424,6 +466,28 @@ public class VRHandControl : MonoBehaviour
         ratio = f2 / f1;
 
         return ratio;
+    }
+
+    private double logisticFunction(float magnitude)
+    {
+        if (magnitude*2 <= C_min)
+        {
+            return 1;
+        }
+        else
+        {
+            double ratio;
+            float a = 50f;
+            float b = -0.2f;
+            float c = 0.6f;
+            float d = 14.8f;
+
+            float y = (a - b) / (1 + Mathf.Exp(-c * (magnitude * 2 - d))) + b;
+
+            ratio = 2 * y / ((magnitude * 2));
+
+            return ratio;
+        }
     }
 
     private void centerDirecting()
@@ -519,7 +583,6 @@ public class VRHandControl : MonoBehaviour
 
         prev_rotationGesture = rotationGesture;
     }
-
 }
 
 public enum HandControl
@@ -527,5 +590,6 @@ public enum HandControl
     Thumb,
     Center,
     Sphere,
-    Portal
+    Portal,
+    None
 } 

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class DebuggerTemplate : MonoBehaviour
 {
@@ -31,10 +32,70 @@ public class DebuggerTemplate : MonoBehaviour
     public GameObject p1;
     public GameObject p2;
 
+    public GameObject unityCoodP1;
+    public GameObject unityCoodP2;
+
+    private bool safetyTestFlag = false;
+
+    private bool tenSecondsPause = false;
+
+    IEnumerator robotSafetyTestDelayer()
+    {
+        while (true)
+        {
+            if (safetyTestFlag)
+            {
+                sliderReference.transform.position = unityCoodP1.transform.position;
+
+                Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
+
+                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f);
+
+                yield return new WaitForSeconds(3f);
+
+                sliderReference.transform.position = unityCoodP2.transform.position;
+
+                Vector3 referencePos2 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
+
+                unityClient.customMove(referencePos2.x, referencePos2.y, referencePos2.z, -0.6, 1.47, 0.62, movementType: 1, interruptible: 1, radius: 0.05f);
+
+                print(Vector3.Distance(referencePos1, referencePos2).ToString("F7"));
+
+                safetyTestFlag = false;
+            }
+            else
+            {
+                yield return new WaitForSeconds(3f);
+            }
+        }
+    }
+
+    IEnumerator tenSecondsPauseDelayer()
+    {
+        while (true)
+        {
+            if (tenSecondsPause)
+            {
+                yield return new WaitForSeconds(10f);
+
+                EditorApplication.isPaused = true;
+
+                tenSecondsPause = false;
+            }
+            else
+            {
+                yield return new WaitForSeconds(3f);
+            }
+        }
+    }
+
     private void Start()
     {
         sliderReference = PPR.Touch_Point;
         robotEndEffector = PPR.TCP_Center;
+
+        StartCoroutine(robotSafetyTestDelayer());
+        StartCoroutine(tenSecondsPauseDelayer());
     }
 
     public void testRelativePosRotChange()
@@ -142,6 +203,16 @@ public class DebuggerTemplate : MonoBehaviour
         float norm = Mathf.Sqrt(ax * ax + ay * ay + az * az);
 
         unityClient.customMove(ax / norm, ay / norm, az / norm, -0.6, 1.47, 0.62, speed: 0.01, acc: 0.15f, movementType: 4); // strange speedl behaviour
+    }
+
+    public void safetyDistanceTest()
+    {
+        safetyTestFlag = true;
+    }
+
+    public void tenSecondsPauseStart()
+    {
+        tenSecondsPause = true;
     }
 }
 
