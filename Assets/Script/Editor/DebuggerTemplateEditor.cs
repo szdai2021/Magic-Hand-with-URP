@@ -50,6 +50,16 @@ public class DebuggerTemplateEditor : Editor
         {
             myScript.speedlTest2();
         }
+
+        if (GUILayout.Button("Start Robot Safety Test"))
+        {
+            myScript.safetyDistanceTest();
+        }
+
+        if (GUILayout.Button("Start 10s pause"))
+        {
+            myScript.tenSecondsPauseStart();
+        }
     }
 
 }

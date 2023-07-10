@@ -35,6 +35,7 @@ namespace VRPortalToolkit
         public float v = 1f;
 
         public int moveType = 1;
+        public Collider robotRange;
 
         private void Start()
         {
@@ -59,7 +60,7 @@ namespace VRPortalToolkit
             Vector3 referencePos1 = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
             Vector3 referencePos2 = unityClient.convertUnityCoord2RobotCoord(trackedEndEffector.transform.position);
 
-            if (startFollowUp & skipFrameCounter > skipThreshold)
+            if (startFollowUp & skipFrameCounter > skipThreshold & robotRange.bounds.Contains(robotEndEffector.transform.position))
             {
                 //float ax = referencePos1.x - referencePos2.x;
                 //float ay = referencePos1.y - referencePos2.y;
@@ -69,7 +70,7 @@ namespace VRPortalToolkit
 
                 //unityClient.customMove(ax / norm, ay / norm, az / norm, -0.6, 1.47, 0.62, speed: 0.01, acc: 0.15f, movementType: 4); // strange speedl behaviour
 
-                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, movementType: moveType, interruptible: interruptible, radius: 0.05f);
+                unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, acc: 330, movementType: moveType, interruptible: interruptible, radius: 0.05f);
 
                 skipFrameCounter = 0;
             }

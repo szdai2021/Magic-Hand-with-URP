@@ -13,6 +13,10 @@ TagManager:
   - Ray
   - GlobalReference
   - SkipHideScript
+  - VICON_P1
+  - VICON_P2
+  - UNITY_P1
+  - UNITY_P2
   layers:
   - Default
   - TransparentFX

@@ -25,7 +25,7 @@ public class directionSphereControl : MonoBehaviour
 
             if (d/2 > 12)
             {
-                d = 30;
+                d = 12;
             }
 
             arrow.transform.localScale = new Vector3(this.transform.localScale.x, this.transform.localScale.y, d/2);
