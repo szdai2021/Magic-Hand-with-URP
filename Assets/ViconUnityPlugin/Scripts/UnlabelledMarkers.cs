@@ -29,7 +29,7 @@ namespace UnityVicon
     public class UnlabelledMarkers : MonoBehaviour
     {
        
-        public ViconDataStreamClient Client;
+        public NewModdedDataStreamClient Client;
         public GameObject unlabeledMarkerPrefab;
         public uint maximumMarkers = 50;
         private uint MarkerCount;
