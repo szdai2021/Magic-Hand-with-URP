@@ -207,7 +207,7 @@ public class SegGlobalInstantiate : MonoBehaviour
                     Output_GetSegmentGlobalRotationQuaternion rot = Client.Output_GetSegmentGlobalRotationQuaternion(subjects[currentSubject], OutputGSN.SegmentName);
 
 
-                    Vector3 pos = new Vector3(-(float)Output.Translation[1] * 0.001f, (float)Output.Translation[2] * 0.001f, (float)Output.Translation[0] * 0.001f)+ xrRigOffset; //ADDED XR RIG OFFSET to make vicon objects follow the xr rig calibration when it doesn't start at 0,0,0
+                    Vector3 pos = new Vector3(-(float)Output.Translation[1] * 0.001f, (float)Output.Translation[2] * 0.001f, (float)Output.Translation[0] * 0.001f); //ADDED XR RIG OFFSET to make vicon objects follow the xr rig calibration when it doesn't start at 0,0,0
 
                     Quaternion TheRot = new Quaternion((float)rot.Rotation[0], (float)rot.Rotation[1], (float)rot.Rotation[2], (float)rot.Rotation[3]);
 

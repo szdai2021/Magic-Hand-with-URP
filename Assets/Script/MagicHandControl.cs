@@ -4,6 +4,9 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using TMPro;
 
 public class MagicHandControl : MonoBehaviour
@@ -168,7 +171,15 @@ public class MagicHandControl : MonoBehaviour
     public bool autoResume = false;
     public AudioSource successGrab;
 
-    IEnumerator threeSecondsPause()
+    string IP = "192.168.50.255";
+    string currentFileName;
+    int port = 9000;
+    string xml;
+
+    IPEndPoint remoteEndPoint;
+    UdpClient client;
+
+    IEnumerator ResumeAfter15s()
     {
         while (true)
         {
@@ -176,7 +187,27 @@ public class MagicHandControl : MonoBehaviour
             {
                 if (InExperimentRestFlag)
                 {
-                    yield return new WaitForSeconds(3f);
+                    yield return new WaitForSeconds(10f);
+
+                    breakText.GetComponent<TextMeshPro>().text = "5";
+
+                    yield return new WaitForSeconds(1f);
+
+                    breakText.GetComponent<TextMeshPro>().text = "4";
+
+                    yield return new WaitForSeconds(1f);
+
+                    breakText.GetComponent<TextMeshPro>().text = "3";
+
+                    yield return new WaitForSeconds(1f);
+
+                    breakText.GetComponent<TextMeshPro>().text = "2";
+
+                    yield return new WaitForSeconds(1f);
+
+                    breakText.GetComponent<TextMeshPro>().text = "1";
+
+                    yield return new WaitForSeconds(1f);
 
                     startInitialPoint = true;
                 }
@@ -215,7 +246,11 @@ public class MagicHandControl : MonoBehaviour
 
         rotationReference = Camera.transform.rotation;
 
-        StartCoroutine(threeSecondsPause());
+        // Vicon Control
+        remoteEndPoint = new IPEndPoint(IPAddress.Parse(IP), port);
+        client = new UdpClient();
+
+        StartCoroutine(ResumeAfter15s());
     }
 
     // Update is called once per frame
@@ -308,6 +343,9 @@ public class MagicHandControl : MonoBehaviour
 
                     if (prevExperimentStage != 2)
                     {
+                        print("stop");
+                        ViconStop();
+
                         saveExperimentResult();
 
                         saveHandMovement();
@@ -782,7 +820,7 @@ public class MagicHandControl : MonoBehaviour
     {
         if (experimentStage == 1)
         {
-            if (currentOrderIndex == 10 | currentOrderIndex == 20)
+            if (currentOrderIndex == 6 | currentOrderIndex == 12 | currentOrderIndex == 18 | currentOrderIndex == 24)
             {
                 if (!InExperimentRestFlag)
                 {
@@ -802,7 +840,12 @@ public class MagicHandControl : MonoBehaviour
 
                 InExperimentRestFlag = true;
 
-                breakText.SetActive(true);
+                if (!breakText.activeSelf)
+                {
+                    breakText.GetComponent<TextMeshPro>().text = "Break !";
+
+                    breakText.SetActive(true);
+                }
             }
             else
             {
@@ -814,6 +857,12 @@ public class MagicHandControl : MonoBehaviour
 
         if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
         {
+            if (currentOrderIndex == 0 & experimentStage == 1)
+            {
+                print("start");
+                ViconStart();
+            }
+
             VR_Hand_Control.InRangePos = new List<Vector3>();
             animationObjectPortal.SetActive(false);
             startInitialPoint = false;
@@ -821,8 +870,8 @@ public class MagicHandControl : MonoBehaviour
 
             PreInExperimentRestFlag = InExperimentRestFlag;
 
-            if (((currentOrderIndex == 10 | currentOrderIndex == 20) & PreInExperimentRestFlag) |
-                (currentOrderIndex != 10 & currentOrderIndex != 20) |
+            if (((currentOrderIndex == 6 | currentOrderIndex == 12 | currentOrderIndex == 18 | currentOrderIndex == 24) & PreInExperimentRestFlag) |
+                (currentOrderIndex != 6 & currentOrderIndex != 12 & currentOrderIndex != 18 & currentOrderIndex != 24) |
                 experimentStage == 0)
             {
                 // add time stamp
@@ -1137,6 +1186,52 @@ public class MagicHandControl : MonoBehaviour
                 }
             }
             
+        }
+    }
+
+    //-------------------------------------------------------------------------------Hardware Configuration------------------------------------------------------------------------
+
+    void GenerateFileName()
+    {
+        currentFileName = "" + DateTime.Now.ToString("HH''mm''ss");
+
+    }
+
+    public void ViconStart()
+    {
+        GenerateFileName();
+        int packetNum = UnityEngine.Random.Range(10000, 99999);
+        string num = packetNum.ToString();
+
+        // Need to change the path in here...
+        xml = $@"<?xml version=""1.0"" encoding=""UTF - 8"" standalone=""no""?><CaptureStart><Name VALUE=""{currentFileName}""/><Notes VALUE=""notesval""/><Description VALUE=""{num}""/><DatabasePath VALUE=""C:\JimNexus\JimTesting\Jim\JimAnimTesting\""/><Delay VALUE=""0""/><PacketID VALUE=""{num}""/></CaptureStart>";
+        SendString(xml);
+
+    }
+
+    public void ViconStop()
+    {
+        int packetNum = UnityEngine.Random.Range(10000, 99999);
+        string num = packetNum.ToString();
+        xml = $@"<?xml version=""1.0"" encoding=""UTF - 8"" standalone=""no""?><CaptureStop><Name VALUE=""{currentFileName}""/><DatabasePath VALUE=""C:\JimNexus\JimTesting\Jim\JimAnimTesting\""/><Delay VALUE=""0""/><PacketID VALUE=""{num}""/></CaptureStop>";
+        SendString(xml);
+
+    }
+
+    void SendString(string message)
+    {
+        print("Sent" + message);
+        try
+        {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+
+
+            client.Send(data, data.Length, remoteEndPoint);
+
+        }
+        catch (Exception err)
+        {
+            print(err.ToString());
         }
     }
 }
