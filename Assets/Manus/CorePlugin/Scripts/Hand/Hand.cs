@@ -83,6 +83,7 @@ namespace Manus.Hand
 			if (usePositionalData && data != null)
 			{
 				var t_Transform = data.GetWristTransform(userIndex);
+				//print(trackerRotation);
 				transform.localPosition = trackerPosition + trackerRotation * (t_Transform.position + positionOffset / 100f);
 				transform.localRotation = trackerRotation * t_Transform.rotation * Quaternion.Euler(rotationOffset);
 			}

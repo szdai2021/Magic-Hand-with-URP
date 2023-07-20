@@ -78,8 +78,7 @@ public class MagicHandControl : MonoBehaviour
     private List<int> orderList = new List<int>();
     private List<int> experimentOrder = new List<int>();
     private List<int> orderInUse = new List<int>();
-    private int currentOrderIndex = -1;
-    private Dictionary<int, float> timeList = new Dictionary<int, float>();
+    public int currentOrderIndex = -1;
     private List<Vector3> posList = new List<Vector3>();
     private List<Vector3> handList = new List<Vector3>();
     private List<Vector3> elbowList = new List<Vector3>();
@@ -170,6 +169,7 @@ public class MagicHandControl : MonoBehaviour
     public Material indicatorM;
     public bool autoResume = false;
     public AudioSource successGrab;
+    public AudioSource fatigueReport;
 
     string IP = "192.168.50.255";
     string currentFileName;
@@ -179,6 +179,9 @@ public class MagicHandControl : MonoBehaviour
     IPEndPoint remoteEndPoint;
     UdpClient client;
 
+    bool inWaite = false;
+    bool pre_inWaite = false;
+
     IEnumerator ResumeAfter15s()
     {
         while (true)
@@ -187,6 +190,17 @@ public class MagicHandControl : MonoBehaviour
             {
                 if (InExperimentRestFlag)
                 {
+                    inWaite = true;
+
+                    if (!breakText.activeSelf)
+                    {
+                        breakText.GetComponent<TextMeshPro>().text = "Break !";
+
+                        breakText.SetActive(true);
+                    }
+
+                    fatigueReport.Play();
+
                     yield return new WaitForSeconds(10f);
 
                     breakText.GetComponent<TextMeshPro>().text = "5";
@@ -207,13 +221,19 @@ public class MagicHandControl : MonoBehaviour
 
                     breakText.GetComponent<TextMeshPro>().text = "1";
 
+                    fatigueReport.Play();
+
                     yield return new WaitForSeconds(1f);
 
+                    inWaite = false;
                     startInitialPoint = true;
+
+                    InExperimentRestFlag = false;
+                    breakText.SetActive(false);
                 }
             }
             
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -312,7 +332,6 @@ public class MagicHandControl : MonoBehaviour
                     titleDisplay.text = "Training" + " " + currentOrderIndex.ToString();
                     orderInUse = trainingOrder;
 
-                    timeList = new Dictionary<int, float>();
                     posList = new List<Vector3>();
                     handList = new List<Vector3>();
                     elbowList = new List<Vector3>();
@@ -330,12 +349,15 @@ public class MagicHandControl : MonoBehaviour
                     titleDisplay.text = "User Study" + " " + currentOrderIndex.ToString();
                     orderInUse = experimentOrder;
 
-                    posList.Add(VRHandTwin.transform.position);
-                    handList.Add(VRHand.transform.position);
-                    elbowList.Add(elbowVICON.transform.position);
-                    shoulderList.Add(shoulderVICON.transform.position);
-                    DistanceList.Add(Vector3.Distance(VRHandTwin.transform.position, currentDataPoint.transform.position));
-                    TimeStampList.Add(Time.time);
+                    if (!inWaite)
+                    {
+                        posList.Add(VRHandTwin.transform.position);
+                        handList.Add(VRHand.transform.position);
+                        elbowList.Add(elbowVICON.transform.position);
+                        shoulderList.Add(shoulderVICON.transform.position);
+                        DistanceList.Add(Vector3.Distance(VRHandTwin.transform.position, currentDataPoint.transform.position));
+                        TimeStampList.Add(Time.time);
+                    }
                     
                     break;
                 case 2: // finished
@@ -343,10 +365,7 @@ public class MagicHandControl : MonoBehaviour
 
                     if (prevExperimentStage != 2)
                     {
-                        print("stop");
                         ViconStop();
-
-                        saveExperimentResult();
 
                         saveHandMovement();
                     }
@@ -578,6 +597,8 @@ public class MagicHandControl : MonoBehaviour
                 dataPointTouched = true;
             }
 
+            print(dataPointTouched);
+
             touchFrameCounter = 0;
         }
         else
@@ -605,8 +626,6 @@ public class MagicHandControl : MonoBehaviour
 
     private void resetDataList()
     {
-
-        timeList = new Dictionary<int, float>();
         posList = new List<Vector3>();
         handList = new List<Vector3>();
         elbowList = new List<Vector3>();
@@ -818,48 +837,17 @@ public class MagicHandControl : MonoBehaviour
 
     private void afterHandCollision()
     {
-        if (experimentStage == 1)
+        if ((currentOrderIndex == 7 | currentOrderIndex == 14 | currentOrderIndex == 21 | currentOrderIndex == 28) & !InExperimentRestFlag & !PreInExperimentRestFlag)
         {
-            if (currentOrderIndex == 6 | currentOrderIndex == 12 | currentOrderIndex == 18 | currentOrderIndex == 24)
-            {
-                if (!InExperimentRestFlag)
-                {
-                    // add time stamp
-                    if (experimentStage == 1)
-                    {
-                        if (timeList.ContainsKey(orderInUse[currentOrderIndex]))
-                        {
-                            timeList.Add(orderInUse[currentOrderIndex] + 2000000, Time.time);
-                        }
-                        else
-                        {
-                            timeList.Add(orderInUse[currentOrderIndex], Time.time);
-                        }
-                    }
-                }
-
-                InExperimentRestFlag = true;
-
-                if (!breakText.activeSelf)
-                {
-                    breakText.GetComponent<TextMeshPro>().text = "Break !";
-
-                    breakText.SetActive(true);
-                }
-            }
-            else
-            {
-                InExperimentRestFlag = false;
-
-                breakText.SetActive(false);
-            }
+            InExperimentRestFlag = true;
         }
+
+        print(dataPointTouched + " " + prevDataPointTouched + " " + InExperimentRestFlag);
 
         if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
         {
             if (currentOrderIndex == 0 & experimentStage == 1)
             {
-                print("start");
                 ViconStart();
             }
 
@@ -870,28 +858,14 @@ public class MagicHandControl : MonoBehaviour
 
             PreInExperimentRestFlag = InExperimentRestFlag;
 
-            if (((currentOrderIndex == 6 | currentOrderIndex == 12 | currentOrderIndex == 18 | currentOrderIndex == 24) & PreInExperimentRestFlag) |
-                (currentOrderIndex != 6 & currentOrderIndex != 12 & currentOrderIndex != 18 & currentOrderIndex != 24) |
+            if (((currentOrderIndex == 7 | currentOrderIndex == 14 | currentOrderIndex == 21 | currentOrderIndex == 28) & PreInExperimentRestFlag) |
+                (currentOrderIndex != 7 & currentOrderIndex != 14 & currentOrderIndex != 21 & currentOrderIndex != 28) |
                 experimentStage == 0)
             {
-                // add time stamp
-                if (experimentStage == 1)
+
+                if ((currentOrderIndex == 7 | currentOrderIndex == 14 | currentOrderIndex == 21 | currentOrderIndex == 28) & inWaite)
                 {
-                    if (currentOrderIndex >= orderInUse.Count)
-                    {
-                        timeList.Add(999999999, Time.time);
-                    }
-                    else
-                    {
-                        if (timeList.ContainsKey(orderInUse[currentOrderIndex]))
-                        {
-                            timeList.Add(orderInUse[currentOrderIndex] + 1000000, Time.time);
-                        }
-                        else
-                        {
-                            timeList.Add(orderInUse[currentOrderIndex], Time.time);
-                        }
-                    }
+                    return;
                 }
 
                 if (currentDataPoint != null)
@@ -945,12 +919,15 @@ public class MagicHandControl : MonoBehaviour
 
                     if (currentOrderIndex != 0) // save pos list and the corresponding index to dict
                     {
-                        trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
-                        handDict.Add(orderInUse[currentOrderIndex], handList);
-                        elbowDict.Add(orderInUse[currentOrderIndex], elbowList);
-                        shoulderDict.Add(orderInUse[currentOrderIndex], shoulderList);
-                        trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
-                        trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
+                        if (orderInUse[currentOrderIndex] != 11)
+                        {
+                            trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+                            handDict.Add(orderInUse[currentOrderIndex], handList);
+                            elbowDict.Add(orderInUse[currentOrderIndex], elbowList);
+                            shoulderDict.Add(orderInUse[currentOrderIndex], shoulderList);
+                            trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
+                            trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
+                        }
 
                         posList = new List<Vector3>();
                         handList = new List<Vector3>();
@@ -976,6 +953,7 @@ public class MagicHandControl : MonoBehaviour
         }
 
         prevDataPointTouched = dataPointTouched;
+        pre_inWaite = inWaite;
     }
 
     private void rearrangeOrder()
@@ -987,6 +965,11 @@ public class MagicHandControl : MonoBehaviour
         experimentOrder = new List<int>();
         experimentOrder.AddRange(orderList.Skip(skipSize).ToList());
         experimentOrder.AddRange(orderList.Take(skipSize).ToList());
+
+        experimentOrder.Insert(7, trainingOrder[0]);
+        experimentOrder.Insert(14, trainingOrder[0]);
+        experimentOrder.Insert(21, trainingOrder[0]);
+        experimentOrder.Insert(28, trainingOrder[0]);
     }
 
     public static (Vector3 targetPos,Quaternion targetRot) getTargetPosRot(Transform T_from, Transform T_to, Transform source)
@@ -1041,31 +1024,6 @@ public class MagicHandControl : MonoBehaviour
         }
 
         reader.Close();
-    }
-
-    private void saveExperimentResult() // save the result of experiment with participant number, scenario number in a txt file
-    {
-        string fileName = "Linear GoGo " + DateTime.Now.ToString("yyyy-MM-dd") + " P" + P_Number.ToString() + " S" + Scenario_No.ToString();
-        string saveFileName = "Assets/RawData/" + fileName + ".txt";
-
-        while (File.Exists(saveFileName))
-        {
-            duplicateFileIndex++;
-            saveFileName = "Assets/RawData/" + fileName + "_D" + duplicateFileIndex.ToString() + ".txt";
-        }
-
-        StreamWriter sw = new StreamWriter(saveFileName);
-
-        sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd\\THH:mm:ss\\Z"));
-        sw.WriteLine(" ");
-
-        sw.WriteLine("Index TimeTaken");
-        foreach (int index in timeList.Keys)
-        {
-            sw.WriteLine(index.ToString() + " " + timeList[index].ToString());
-        }
-
-        sw.Close();
     }
 
     private void saveHandMovement()
@@ -1220,7 +1178,6 @@ public class MagicHandControl : MonoBehaviour
 
     void SendString(string message)
     {
-        print("Sent" + message);
         try
         {
             byte[] data = Encoding.UTF8.GetBytes(message);
@@ -1231,7 +1188,6 @@ public class MagicHandControl : MonoBehaviour
         }
         catch (Exception err)
         {
-            print(err.ToString());
         }
     }
 }

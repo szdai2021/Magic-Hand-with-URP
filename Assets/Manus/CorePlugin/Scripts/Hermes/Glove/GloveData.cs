@@ -95,7 +95,7 @@ namespace Manus.Hermes.Glove
 		float[] m_FingerHaptics = null;
 		State m_State = null;
 
-		Quaternion m_WristRotation;
+		public static Quaternion m_WristRotation;
 
 		Dictionary<int, Tuple<Vector3, Quaternion>> m_Transforms = new Dictionary<int, Tuple<Vector3, Quaternion>>();
 
@@ -134,7 +134,11 @@ namespace Manus.Hermes.Glove
 		{
 			m_Data = p_Data;
 
-			if (m_Data.Wrist != null) m_WristRotation = m_Data.Wrist.ToUnity();
+			if (m_Data.Wrist != null)
+			{ 
+				m_WristRotation = m_Data.Wrist.ToUnity();
+				//Debug.Log(m_WristRotation);
+			}
 
 			if (m_UserIndex != null)
 			{
