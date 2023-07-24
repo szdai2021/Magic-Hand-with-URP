@@ -361,7 +361,27 @@ public class MagicHandControl : MonoBehaviour
                     
                     break;
                 case 2: // finished
-                    titleDisplay.text = "Finished";
+                    if (prevExperimentStage == 1)
+                    {
+                        trajectoryDict.Add(orderInUse[currentOrderIndex], posList);
+                        handDict.Add(orderInUse[currentOrderIndex], handList);
+                        elbowDict.Add(orderInUse[currentOrderIndex], elbowList);
+                        shoulderDict.Add(orderInUse[currentOrderIndex], shoulderList);
+                        trajectoryDistanceDict.Add(orderInUse[currentOrderIndex], DistanceList);
+                        trajectoryTimeStampDict.Add(orderInUse[currentOrderIndex], TimeStampList);
+
+                        InExperimentRestFlag = true;
+                    }
+
+                    if (!InExperimentRestFlag)
+                    {
+                        titleDisplay.text = "Finished";
+
+                        // show finished indication
+                        finishText.SetActive(true);
+
+                        experimentStart = false;
+                    }
 
                     if (prevExperimentStage != 2)
                     {
@@ -370,10 +390,13 @@ public class MagicHandControl : MonoBehaviour
                         saveHandMovement();
                     }
                     
-                    // show finished indication
-                    finishText.SetActive(true);
+                    //titleDisplay.text = "Finished";
 
-                    experimentStart = false;
+                    //// show finished indication
+                    //finishText.SetActive(true);
+
+                    //experimentStart = false;
+
                     break;
                 default: // do nothing
                     break;
