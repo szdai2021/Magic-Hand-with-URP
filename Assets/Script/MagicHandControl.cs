@@ -609,7 +609,7 @@ public class MagicHandControl : MonoBehaviour
         prev_gestureDetection = current_gestureDetection;
         lastFrameHandRotation = DW2_PlaceHolder.transform.rotation;
 
-        if (touchFrameCounter > 60)
+        if (touchFrameCounter > 30)
         {
             if (startPoint.activeSelf)
             {
@@ -715,7 +715,7 @@ public class MagicHandControl : MonoBehaviour
             // change the distance of the linear actuator
             float distance = Mathf.Abs(Vector3.Dot(normal, pointOnPlane - closestDataPoint.transform.position));
                 
-            print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5 + " " + projectionPlaneIndex);
+            // print(distance + " " + CloseDistance + " " + FarDistance + " " + (distance - CloseDistance) / (FarDistance - CloseDistance) * 5 + " " + projectionPlaneIndex);
 
             unityClient.customMove(referencePos1.x, referencePos1.y, referencePos1.z, -0.6, 1.47, 0.62, acc:330, movementType: 1, interruptible: 1, radius: 0.05f, linearActuatorDistance: (distance - CloseDistance) / (FarDistance - CloseDistance) * 5);
 
@@ -864,8 +864,6 @@ public class MagicHandControl : MonoBehaviour
         {
             InExperimentRestFlag = true;
         }
-
-        print(dataPointTouched + " " + prevDataPointTouched + " " + InExperimentRestFlag);
 
         if ((dataPointTouched & !prevDataPointTouched & !InExperimentRestFlag) | startInitialPoint)
         {

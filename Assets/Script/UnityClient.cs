@@ -138,12 +138,12 @@ public class UnityClient : MonoBehaviour
                 unityCoordMatrix[2, 2] = virtualEndEffector.transform.position.z;
                 unityCoordMatrix[3, 2] = 1f;
 
-                // send command to robot for the fourth movement and wait for 5 seconds
-                customMove(0.3f, 0f, 0.35f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
+                // send command to robot for the fourth movement and wait for 5 seconds // change this
+                customMove(0.3f, 0.1f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(1f);
-                customMove(0.3f, 0f, 0.35f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
+                customMove(0.3f, 0.1f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(1f);
-                customMove(0.3f, 0f, 0.35f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
+                customMove(0.3f, 0.1f, 0.2f, -0.6f, 1.47f, 0.62f, movementType: 0, interruptible: 0);
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 
