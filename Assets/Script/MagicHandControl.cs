@@ -182,6 +182,9 @@ public class MagicHandControl : MonoBehaviour
     bool inWaite = false;
     bool pre_inWaite = false;
 
+    bool portalBuffer = false;
+    int portalBufferCounter = 10;
+
     IEnumerator ResumeAfter15s()
     {
         while (true)
@@ -605,7 +608,6 @@ public class MagicHandControl : MonoBehaviour
                 touchFrameCounter = 0;
             }
         }
-
         prev_gestureDetection = current_gestureDetection;
         lastFrameHandRotation = DW2_PlaceHolder.transform.rotation;
 
@@ -619,8 +621,6 @@ public class MagicHandControl : MonoBehaviour
             {
                 dataPointTouched = true;
             }
-
-            print(dataPointTouched);
 
             touchFrameCounter = 0;
         }
