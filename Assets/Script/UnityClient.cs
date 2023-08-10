@@ -26,7 +26,7 @@ public class UnityClient : MonoBehaviour
 
     public bool robotStopped = true;
 
-    private Matrix4x4 transMatrix = Matrix4x4.zero;
+    public Matrix4x4 transMatrix = Matrix4x4.zero;
     private Matrix4x4 unityCoordMatrix = Matrix4x4.zero;
     private Matrix4x4 robotCoordMatrix = Matrix4x4.zero;
 
@@ -84,7 +84,7 @@ public class UnityClient : MonoBehaviour
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 
-                //Debug.Log(robotCoordTemp.ToString("f6") + " " + virtualEndEffector.transform.position.ToString("f6"));
+                Debug.Log(robotCoordTemp.ToString("f6") + " " + virtualEndEffector.transform.position.ToString("f6"));
 
                 robotCoordMatrix[0, 0] = robotCoordTemp.x;
                 robotCoordMatrix[1, 0] = robotCoordTemp.y;
@@ -105,7 +105,7 @@ public class UnityClient : MonoBehaviour
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 
-                //Debug.Log(robotCoordTemp + " " + virtualEndEffector.transform.position);
+                Debug.Log(robotCoordTemp + " " + virtualEndEffector.transform.position);
 
                 robotCoordMatrix[0, 1] = robotCoordTemp.x;
                 robotCoordMatrix[1, 1] = robotCoordTemp.y;
@@ -126,7 +126,7 @@ public class UnityClient : MonoBehaviour
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 
-                //Debug.Log(robotCoordTemp + " " + virtualEndEffector.transform.position);
+                Debug.Log(robotCoordTemp + " " + virtualEndEffector.transform.position);
 
                 robotCoordMatrix[0, 2] = robotCoordTemp.x;
                 robotCoordMatrix[1, 2] = robotCoordTemp.y;
@@ -147,7 +147,7 @@ public class UnityClient : MonoBehaviour
                 yield return new WaitForSeconds(3f);
                 // record unity coord and robot coord in matrix
 
-                //Debug.Log(robotCoordTemp + " " + virtualEndEffector.transform.position);
+                Debug.Log(robotCoordTemp + " " + virtualEndEffector.transform.position);
 
                 robotCoordMatrix[0, 3] = robotCoordTemp.x;
                 robotCoordMatrix[1, 3] = robotCoordTemp.y;
@@ -161,7 +161,7 @@ public class UnityClient : MonoBehaviour
 
                 transMatrix = robotCoordMatrix * unityCoordMatrix.inverse;
 
-                //print(transMatrix);
+                print(transMatrix);
 
                 customMove(-2.95435f, -1.64447f, 2.18844f, -0.564082f, 0.984871f, -7.98365f, movementType: 3, interruptible: 0);
 

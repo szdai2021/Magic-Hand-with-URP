@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 
 public class DebuggerTemplate : MonoBehaviour
 {
@@ -38,6 +39,9 @@ public class DebuggerTemplate : MonoBehaviour
     private bool safetyTestFlag = false;
 
     private bool tenSecondsPause = false;
+
+    public GameObject unityObjectTarget;
+
 
     IEnumerator robotSafetyTestDelayer()
     {
@@ -153,9 +157,9 @@ public class DebuggerTemplate : MonoBehaviour
         Keyframe keyframeY = new Keyframe(clip_flying.frameRate * 0, currentPosition.y);
         Keyframe keyframeZ = new Keyframe(clip_flying.frameRate * 0, currentPosition.z);
 
-        Keyframe keyframeX1 = new Keyframe(clip_flying.frameRate * 1/60, -0.793f);
-        Keyframe keyframeY1 = new Keyframe(clip_flying.frameRate * 1/60, 0.398f);
-        Keyframe keyframeZ1 = new Keyframe(clip_flying.frameRate * 1/60, 0.48f);
+        Keyframe keyframeX1 = new Keyframe(clip_flying.frameRate * 1 / 60, -0.793f);
+        Keyframe keyframeY1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.398f);
+        Keyframe keyframeZ1 = new Keyframe(clip_flying.frameRate * 1 / 60, 0.48f);
 
         AnimationCurve curveX = new AnimationCurve(keyframeX, keyframeX1);
         AnimationCurve curveY = new AnimationCurve(keyframeY, keyframeY1);
@@ -213,6 +217,100 @@ public class DebuggerTemplate : MonoBehaviour
     public void tenSecondsPauseStart()
     {
         tenSecondsPause = true;
+    }
+
+    public void robotPosSyncTest()
+    {
+        sliderReference.transform.position = unityObjectTarget.transform.position;
+
+        Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
+
+        unityClient.customMove(newPos.x, newPos.y, newPos.z, -0.6, 1.47, 0.62, movementType: 0);
+    }
+
+    public void saveTransM()
+    {
+        // Define the path to the text file
+        string filePath = "transMatrixConfig.txt";
+
+        // Create or overwrite the file
+        using (StreamWriter writer = new StreamWriter(filePath))
+        {
+            // Write the matrix to the file
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    writer.Write(unityClient.transMatrix[i, j]);
+                    if (j < 4 - 1)
+                    {
+                        writer.Write("\t"); // Use a tab to separate values
+                    }
+                }
+                writer.WriteLine(); // Move to the next line
+            }
+        }
+    }
+
+    public void loadSavedTranM()
+    {
+        // Define the path to the text file
+        string filePath = "transMatrixConfig.txt";
+
+        // Check if the file exists
+        if (File.Exists(filePath))
+        {
+            // Read all lines from the file
+            string[] lines = File.ReadAllLines(filePath);
+
+            // Check if the file contains exactly 4 lines
+            if (lines.Length == 4)
+            {
+                double[,] matrix = new double[4, 4];
+
+                // Parse and populate the matrix from the lines
+                for (int i = 0; i < 4; i++)
+                {
+                    string[] values = lines[i].Split('\t');
+                    // Check if each line contains exactly 4 values
+                    if (values.Length == 4)
+                    {
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (double.TryParse(values[j], out double value))
+                            {
+                                matrix[i, j] = value;
+                            }
+                            else
+                            {
+                                print("Error parsing value at row " + (i + 1) + ", column " + (j + 1));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        print("Invalid number of values in line " + (i + 1));
+                        break;
+                    }
+                }
+
+                // Create a Unity Matrix4x4 using the loaded values
+                unityClient.transMatrix = new Matrix4x4(
+                    new Vector4((float)matrix[0, 0], (float)matrix[1, 0], (float)matrix[2, 0], (float)matrix[3, 0]),
+                    new Vector4((float)matrix[0, 1], (float)matrix[1, 1], (float)matrix[2, 1], (float)matrix[3, 1]),
+                    new Vector4((float)matrix[0, 2], (float)matrix[1, 2], (float)matrix[2, 2], (float)matrix[3, 2]),
+                    new Vector4((float)matrix[0, 3], (float)matrix[1, 3], (float)matrix[2, 3], (float)matrix[3, 3])
+                );
+            }
+            else
+            {
+                print("The file must contain exactly 4 lines.");
+            }
+        }
+        else
+        {
+            print("File not found: " + filePath);
+        }
     }
 }
 

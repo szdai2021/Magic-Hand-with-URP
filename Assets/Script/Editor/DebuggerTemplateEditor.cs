@@ -60,6 +60,21 @@ public class DebuggerTemplateEditor : Editor
         {
             myScript.tenSecondsPauseStart();
         }
+
+        if (GUILayout.Button("RobotPosSyncTest"))
+        {
+            myScript.robotPosSyncTest();
+        }
+
+        if (GUILayout.Button("saveConfig"))
+        {
+            myScript.saveTransM();
+        }
+
+        if (GUILayout.Button("loadConfig"))
+        {
+            myScript.loadSavedTranM();
+        }
     }
 
 }

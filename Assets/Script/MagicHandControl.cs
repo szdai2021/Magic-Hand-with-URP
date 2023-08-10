@@ -79,6 +79,7 @@ public class MagicHandControl : MonoBehaviour
     private List<int> experimentOrder = new List<int>();
     private List<int> orderInUse = new List<int>();
     public int currentOrderIndex = -1;
+    public int firstIndex = 0;
     private List<Vector3> posList = new List<Vector3>();
     private List<Vector3> handList = new List<Vector3>();
     private List<Vector3> elbowList = new List<Vector3>();
@@ -424,7 +425,25 @@ public class MagicHandControl : MonoBehaviour
         switch (((int)controlMethod))
         {
             case 0: // magic hand control
-                ArmRender.enable = false;
+                    //ArmRender.enable = false;
+
+                //setObjectActive(portalRelevant, false);
+                //VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
+                //VRHandTwin.GetComponent<VRHandDisplay>().hideVRHand = false;
+
+                //cameraParent.SetActive(false);
+
+                //Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
+
+                //if (rotationLock)
+                //{
+                //    Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
+                //}
+
+                //(sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphereParent.transform);
+
+                //break;
+                ArmRender.enable = true;
 
                 setObjectActive(portalRelevant, false);
                 VRHand.GetComponent<VRHandDisplay>().hideVRHand = true;
@@ -433,14 +452,13 @@ public class MagicHandControl : MonoBehaviour
                 cameraParent.SetActive(false);
 
                 Camera.transform.position = VRHandTwin.transform.position + cameraOffset;
-
                 if (rotationLock)
                 {
                     Camera.transform.rotation = DW2_PlaceHolder.transform.rotation * Quaternion.Inverse(lastFrameHandRotation) * Camera.transform.rotation;
                 }
 
                 (sphereParentTwin.transform.position, sphereParentTwin.transform.rotation) = getNewPosRotAfterRotation(VRHandTwinPlaceHolder.transform, VRHandPlaceHolder.transform, sphereParent.transform);
-                
+
                 break;
             case 1: // extended hand control
                 ArmRender.enable = true;
@@ -991,6 +1009,8 @@ public class MagicHandControl : MonoBehaviour
         experimentOrder.Insert(14, trainingOrder[0]);
         experimentOrder.Insert(21, trainingOrder[0]);
         experimentOrder.Insert(28, trainingOrder[0]);
+
+        firstIndex = experimentOrder[1];
     }
 
     public static (Vector3 targetPos,Quaternion targetRot) getTargetPosRot(Transform T_from, Transform T_to, Transform source)
