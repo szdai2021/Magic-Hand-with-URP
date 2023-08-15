@@ -267,6 +267,7 @@ public class MagicHandControl : MonoBehaviour
         trainingOrder.Add(592);
         trainingOrder.Add(2560);
         trainingOrder.Add(1830);
+        trainingOrder.Add(0);
 
         rotationReference = Camera.transform.rotation;
 
