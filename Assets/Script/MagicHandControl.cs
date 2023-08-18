@@ -186,6 +186,8 @@ public class MagicHandControl : MonoBehaviour
     bool portalBuffer = false;
     int portalBufferCounter = 10;
 
+    public GameObject handIndicator;
+
     IEnumerator ResumeAfter15s()
     {
         while (true)
@@ -281,6 +283,16 @@ public class MagicHandControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (Scenario_No == 4)
+        {
+            handIndicator.SetActive(true);
+        }
+        else
+        {
+            handIndicator.SetActive(false);
+        }
+
         if (printOrderFlag)
         {
             printOrder();
