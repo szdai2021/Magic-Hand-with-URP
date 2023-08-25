@@ -312,5 +312,6 @@ public class DebuggerTemplate : MonoBehaviour
             print("File not found: " + filePath);
         }
     }
+
 }
 

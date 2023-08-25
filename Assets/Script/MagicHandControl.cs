@@ -1024,6 +1024,27 @@ public class MagicHandControl : MonoBehaviour
         experimentOrder.Insert(28, trainingOrder[0]);
 
         firstIndex = experimentOrder[1];
+
+        exportTargetInfo();
+    }
+
+    private void exportTargetInfo()
+    {
+        string saveFileName = "Assets/RawData/Targets.txt";
+
+        StreamWriter sw = new StreamWriter(saveFileName);
+
+        sw.WriteLine("ID X Y Z");
+        foreach (int index in experimentOrder)
+        {
+            Transform t = scatterParent.transform.GetChild(index);
+
+            string s = index.ToString() + " " + t.position.x + " " + t.position.y + " " + t.position.z;
+
+            sw.WriteLine(s);
+        }
+
+        sw.Close();
     }
 
     public static (Vector3 targetPos,Quaternion targetRot) getTargetPosRot(Transform T_from, Transform T_to, Transform source)
