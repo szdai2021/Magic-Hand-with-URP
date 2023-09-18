@@ -1025,7 +1025,7 @@ public class MagicHandControl : MonoBehaviour
 
         firstIndex = experimentOrder[1];
 
-        exportTargetInfo();
+        //exportTargetInfo();
     }
 
     private void exportTargetInfo()
