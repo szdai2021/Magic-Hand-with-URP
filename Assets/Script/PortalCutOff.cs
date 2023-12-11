@@ -45,12 +45,14 @@ public class PortalCutOff : MonoBehaviour
 
     private bool throughPortal = false;
 
+    public bool testFlag = true;
+
     // Update is called once per frame
     void Update()
     {
         if (enable)
         {
-            if (VRHand.GetComponent<VRHandControlGoGo>().gestureDetection)
+            if (VRHand.GetComponent<VRHandControlGoGo>().gestureDetection & testFlag)
             {
                 cleanUnusedHull();
 

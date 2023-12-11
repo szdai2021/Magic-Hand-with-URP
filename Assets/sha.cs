@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Manus.Hermes.Glove;
+using System;
+using Manus.Hand;
 
 public class sha : MonoBehaviour
 {
@@ -20,9 +22,29 @@ public class sha : MonoBehaviour
     public bool positionFlag;
     public bool rotationFlag;
 
+
+    public Quaternion wristRotation;
+    public Dictionary<int, Tuple<Vector3, Quaternion>> rawData = new Dictionary<int, Tuple<Vector3, Quaternion>>();
+    public Tuple<Vector3, Quaternion> thumb;
+    public Tuple<Vector3, Quaternion> index;
+    public Tuple<Vector3, Quaternion> middle;
+    public Tuple<Vector3, Quaternion> ring;
+    public Tuple<Vector3, Quaternion> pinky;
+
+    public Quaternion startRot;
+    public bool getStartRot = false;
+
+    public int i;
+
     // Update is called once per frame
     void Update()
     {
+        if (getStartRot)
+        {
+            startRot = posParent.transform.rotation;
+            getStartRot = false;
+        }
+
         if (autoAssignParent)
         {
             posParent = DataStreamObject.transform.GetChild(assignIndex).gameObject;
@@ -38,16 +60,19 @@ public class sha : MonoBehaviour
         {
             if (positionFlag)
             {
-                this.gameObject.transform.localPosition = posParent.transform.position + positionOffset;
+                this.gameObject.transform.position = posParent.transform.position + positionOffset;
             }
-            
+
 
             if (rotationFlag)
             {
-                this.gameObject.transform.localRotation = Quaternion.Euler(rotationOffset) * ReverseQuaternionInOneDirection(ReverseQuaternionInOneDirection(ReverseQuaternionInOneDirection(Data.m_WristRotation, reverseDirectionA), reverseDirectionB), reverseDirectionC);
+                //this.gameObject.transform.localRotation = Quaternion.Euler(rotationOffset) * ReverseQuaternionInOneDirection(ReverseQuaternionInOneDirection(ReverseQuaternionInOneDirection(Data.m_WristRotation, reverseDirectionA), reverseDirectionB), reverseDirectionC);
+                //this.gameObject.transform.rotation = Quaternion.Euler(rotationOffset) * ReverseQuaternionInOneDirection(ReverseQuaternionInOneDirection(ReverseQuaternionInOneDirection(posParent.transform.rotation, reverseDirectionA), reverseDirectionB), reverseDirectionC);
+                this.gameObject.transform.rotation = Quaternion.Euler(posParent.transform.rotation.eulerAngles.x - startRot.eulerAngles.x, 0, 0);
             }
-
             //print(Data.m_WristRotation);
+
+            wristRotation = Data.m_WristRotation;
         }
 
     }

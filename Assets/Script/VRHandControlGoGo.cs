@@ -116,6 +116,11 @@ public class VRHandControlGoGo : MonoBehaviour
     public List<Vector3> InRangePos = new List<Vector3>();
 
     public HapticColorIndicator HCI;
+    public GameObject syncParent;
+
+    public bool disableExtension = false;
+    public bool disableExtension2 = false;
+
     private void Start()
     {
         lineRenderer = this.GetComponent<LineRenderer>();
@@ -129,15 +134,24 @@ public class VRHandControlGoGo : MonoBehaviour
         DWC2.transform.position = DWC1.transform.position + VRHandTwinPosOffset_Local + OffsetRAM;
         DWC2.transform.rotation = DWC1.transform.rotation * VRHandTwinRotOffset * TempRotationReference;
 
+        if (!disableExtension)
+        {
+            DWC2.transform.position = DWC1.transform.position;
+        }
+
         PortalCutOff.enable = false;
         lineRenderer.positionCount = 0;
 
         directionArrow.transform.parent.gameObject.GetComponent<directionWheelControl>().posParent = DirectionArrow_Parent;
         DWC2.GetComponent<directionWheelControl>().posParent = DWC2_Parent;
 
-        if (gestureDetection)
+        if (gestureDetection & disableExtension2)
         {
-            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
+            Transform t = syncParent.transform;
+            t.position = syncParent.transform.position + this.GetComponent<sha>().positionOffset;
+            //t.rotation = Quaternion.Euler(this.GetComponent<sha>().rotationOffset) * this.GetComponent<sha>().ReverseQuaternionInOneDirection(this.GetComponent<sha>().ReverseQuaternionInOneDirection(this.GetComponent<sha>().ReverseQuaternionInOneDirection(syncParent.transform.rotation, this.GetComponent<sha>().reverseDirectionA), this.GetComponent<sha>().reverseDirectionB), this.GetComponent<sha>().reverseDirectionC);
+            t.rotation = Quaternion.Euler(syncParent.transform.rotation.eulerAngles.x - this.GetComponent<sha>().startRot.eulerAngles.x, 0, 0);
+            (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, t);
         }
         else
         {
@@ -148,7 +162,13 @@ public class VRHandControlGoGo : MonoBehaviour
             }
             else
             {
-                (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
+                //(VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, this.transform);
+
+                Transform t = syncParent.transform;
+                t.position = syncParent.transform.position + this.GetComponent<sha>().positionOffset;
+                //t.rotation = Quaternion.Euler(this.GetComponent<sha>().rotationOffset) * this.GetComponent<sha>().ReverseQuaternionInOneDirection(this.GetComponent<sha>().ReverseQuaternionInOneDirection(this.GetComponent<sha>().ReverseQuaternionInOneDirection(syncParent.transform.rotation, this.GetComponent<sha>().reverseDirectionA), this.GetComponent<sha>().reverseDirectionB), this.GetComponent<sha>().reverseDirectionC);
+                t.rotation = Quaternion.Euler(syncParent.transform.rotation.eulerAngles.x - this.GetComponent<sha>().startRot.eulerAngles.x, 0, 0);
+                (VRHandTwin.transform.position, VRHandTwin.transform.rotation) = MagicHandControl.getNewPosRotAfterRotation(DWC1PlaceHolder.transform, DWC2PlaceHolder.transform, t);
             }
         }
         

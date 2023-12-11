@@ -97,7 +97,7 @@ namespace Manus.Hermes.Glove
 
 		public static Quaternion m_WristRotation;
 
-		Dictionary<int, Tuple<Vector3, Quaternion>> m_Transforms = new Dictionary<int, Tuple<Vector3, Quaternion>>();
+		public static Dictionary<int, Tuple<Vector3, Quaternion>> m_Transforms = new Dictionary<int, Tuple<Vector3, Quaternion>>();
 
 		global::Hermes.Tools.CareTaker m_CareTaker = null;
 

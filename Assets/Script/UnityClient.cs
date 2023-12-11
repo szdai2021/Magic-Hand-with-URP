@@ -280,12 +280,12 @@ public class UnityClient : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown("space"))
-        {
-            customMove(posVector.x, posVector.y, posVector.z, rotVector.x, rotVector.y, rotVector.z, angle6:jointAngleBias[5], movementType: moveType, interruptible: 0);
-        }
+        //if (Input.GetKeyDown("space"))
+        //{
+        //    customMove(posVector.x, posVector.y, posVector.z, rotVector.x, rotVector.y, rotVector.z, angle6:jointAngleBias[5], movementType: moveType, interruptible: 0);
+        //}
 
-        if (Input.GetKeyDown("i"))
+        if (Input.GetKeyDown("space"))
         {
             initialPos();
         }

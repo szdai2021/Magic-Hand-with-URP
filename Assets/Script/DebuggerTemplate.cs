@@ -42,6 +42,8 @@ public class DebuggerTemplate : MonoBehaviour
 
     public GameObject unityObjectTarget;
 
+    public GameObject[] TargetList;
+
 
     IEnumerator robotSafetyTestDelayer()
     {
@@ -219,9 +221,17 @@ public class DebuggerTemplate : MonoBehaviour
         tenSecondsPause = true;
     }
 
-    public void robotPosSyncTest()
+    public void robotPosSyncTest(GameObject target = null)
     {
-        sliderReference.transform.position = unityObjectTarget.transform.position;
+        if (target == null)
+        {
+            sliderReference.transform.position = unityObjectTarget.transform.position;
+        }
+        else
+        {
+            sliderReference.transform.position = target.transform.position;
+        }
+        
 
         Vector3 newPos = unityClient.convertUnityCoord2RobotCoord(robotEndEffector.transform.position);
 
@@ -310,6 +320,34 @@ public class DebuggerTemplate : MonoBehaviour
         else
         {
             print("File not found: " + filePath);
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown("1"))
+        {
+            robotPosSyncTest(TargetList[0]);
+        }
+
+        if (Input.GetKeyDown("2"))
+        {
+            robotPosSyncTest(TargetList[1]);
+        }
+
+        if (Input.GetKeyDown("3"))
+        {
+            robotPosSyncTest(TargetList[2]);
+        }
+
+        if (Input.GetKeyDown("4"))
+        {
+            robotPosSyncTest(TargetList[3]);
+        }
+
+        if (Input.GetKeyDown("5"))
+        {
+            robotPosSyncTest(TargetList[4]);
         }
     }
 

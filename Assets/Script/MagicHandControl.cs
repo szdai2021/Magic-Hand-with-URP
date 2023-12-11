@@ -187,6 +187,8 @@ public class MagicHandControl : MonoBehaviour
     int portalBufferCounter = 10;
 
     public GameObject handIndicator;
+    public GameObject[] checkList;
+    public Collider checkbox;
 
     IEnumerator ResumeAfter15s()
     {
@@ -676,6 +678,8 @@ public class MagicHandControl : MonoBehaviour
         {
             VR_Hand_Control.resetConfig();
         }
+
+        multiTargetRenderChange();
     }
 
     private void resetDataList()
@@ -888,6 +892,34 @@ public class MagicHandControl : MonoBehaviour
     //    prevStartPointTouched = startPointTouched;
     //    prevDataPointTouched = dataPointTouched;
     //}
+
+    private void multiTargetRenderChange()
+    {
+        foreach (GameObject g in checkList)
+        {
+            // add the outline effect as the second render material
+            Material[] materials = currentDataPoint.GetComponent<MeshRenderer>().materials;
+
+            if (checkbox.bounds.Contains(g.transform.position))
+            {
+                if (materials.Length == 1)
+                {
+                    Array.Resize(ref materials, materials.Length + 1);
+                    materials[materials.Length - 1] = outline;
+                    currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+                }
+            }
+            else
+            {
+                // remove the outline effect by deleting the second render material
+                if (currentDataPoint.GetComponent<MeshRenderer>().materials.Length >= 2)
+                {
+                    Array.Resize(ref materials, 1);
+                    currentDataPoint.GetComponent<MeshRenderer>().materials = materials;
+                }
+            }
+        }
+    }
 
     private void afterHandCollision()
     {
